@@ -1,0 +1,13 @@
+{% block content %}
+<h3>Account Created !</h3>
+<h1>Please login with your email and password</h1>
+
+<h3>{{ error }}</h3>
+
+<form method="POST">
+    {% csrf_token %}
+    {{ loginform.as_p }}
+    <button type = 'submit'>Login</button>
+</form>
+
+{% endblock %}

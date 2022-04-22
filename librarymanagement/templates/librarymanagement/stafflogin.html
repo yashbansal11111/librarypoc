@@ -1,0 +1,16 @@
+{% block content %}
+
+<h1>Please Login</h1>
+
+<h2>{{ error }}</h2>
+
+<form method="POST">
+    {% csrf_token %}
+    {{ forms.as_p }}
+    <!--.as_p wraps most of the information on webpage into paragraph tags to make it look more meaningful-->
+    <button type="submit">Login</button>
+</form>
+
+Not Registered yet? <a href = "{% url 'staffregistration' %}">Sign Up</a>
+
+{% endblock %}

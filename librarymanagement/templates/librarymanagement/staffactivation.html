@@ -1,0 +1,15 @@
+{% block content %}
+
+<h2>PLEASE PROVIDE STAFF DETAILS - </h2>
+
+<h3>{{ error }}</h3>
+
+<form method="POST">
+    {% csrf_token %}
+    {{ staff_form.as_p }}
+    <!--.as_p wraps most of the information on webpage into paragraph tags to make it look more meaningful-->
+    <button type="submit">Submit</button>
+</form>
+
+
+{% endblock %}

@@ -1,0 +1,24 @@
+{% if messages %}
+    {% for message in messages %}
+        <div>
+            <strong>{{message|safe}}</strong>
+        </div>
+    {% endfor %}
+{% else %}
+
+<h2>Please Register - </h2>
+<form action = "{% url 'emailpage' %}" method="POST">
+    {% csrf_token %}
+    Username:- <br>
+    <input type="text", name = 'username', placeholder="username"/>
+    <br><br>
+    E-Mail Address:- <br>
+    <input type="text", name = 'email', placeholder="e-mail address">
+    <br><br>
+    Password:- <br>
+    <input type="password", name = 'password', placeholder = 'password'>
+    <br><br>
+    <button type="submit">Submit</button>
+
+</form>
+{% endif %}
