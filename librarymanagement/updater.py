@@ -6,3 +6,4 @@ def start():
     scheduler = BackgroundScheduler()
     scheduler.add_job(checkinitial, trigger='interval', seconds = 2)
     scheduler.start()
+    

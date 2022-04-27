@@ -30,6 +30,7 @@ urlpatterns = [
     path('issuebook/', views.issuebook, name = 'issuebook'),
     path('logout/',views.logoutpage,name='logoutpage'),
     path('staffentry/', views.staffentry, name = 'staffentry'),
+    path('viewbook/', views.viewbook, name = 'viewbook')
     #path('staffregistration/', views.staffregistration, name = 'staffregistration'),
     #path('stafflogin/', views.stafflogin, name = 'stafflogin'),
 

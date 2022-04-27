@@ -21,12 +21,24 @@ class Student(models.Model):
                                     help_text='Designates whether this user\
                                                should be treated as active. \
                                                Unselect this instead of deleting accounts.',
-                                               verbose_name='active')
+                                    verbose_name='active')
     is_invited = models.BooleanField(default=True,
                                      help_text='Designates whether this user\
                                                 has received activation link on its email',
                                      verbose_name='Invited'
                                      )
+    is_initial = models.BooleanField(default=False,
+                                     help_text='Designates whether this user\
+                                                is newly created and its\
+                                                email activation is still pending',
+                                     verbose_name='Initial'
+                                     )
+    open_link = models.BooleanField(default=False,
+                                    help_text='Designates whether this user\
+                                               has clicked on activation link\
+                                               sent on his/her email',
+                                    verbose_name='Opened Link'
+                                    )
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['first_name','last_name', 'date_of_birth', 'email', 'phone']
 
@@ -55,6 +67,12 @@ class LibraryRegistration(AbstractUser):
                                                 has received activation link on its email',
                                      verbose_name='Invited'
                                      )
+    open_link = models.BooleanField(default=False,
+                                    help_text='Designates whether this user\
+                                               has clicked on activation link\
+                                               sent on his/her email',
+                                    verbose_name='Opened Link'
+                                    )
     def __str__(self):
         return str(self.username)
 

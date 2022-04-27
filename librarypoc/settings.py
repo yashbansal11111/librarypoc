@@ -150,3 +150,5 @@ DEFAULT_FROM_EMAIL = 'noreply<no_reply@domain.com>'
 AUTH_USER_MODEL = 'librarymanagement.LibraryRegistration'
 
 DEFAULT_AUTO_FIELD='django.db.models.AutoField'
+
+HOST_ADDR = 'localhost:8000'

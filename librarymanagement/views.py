@@ -6,7 +6,7 @@ from django.core.mail import EmailMessage
 from django.forms import ValidationError
 from django.http import HttpResponse
 from django.core.exceptions import ObjectDoesNotExist
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect, render, get_object_or_404
 from django.contrib.sites.shortcuts import get_current_site
 from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
@@ -24,7 +24,12 @@ def uploadcsv(request):
     if request.method == 'GET':
         return render(request, 'librarymanagement/uploadcsv.html' )
     else:
-        csv_file = request.FILES['file']
+        try:
+            csv_file = request.FILES['file']
+        except KeyError:
+            context = {'error':'No files selected to upload, please select a file from your system'}
+            return render(request, 'librarymanagement/uploadcsv.html', context)
+
         if not csv_file.name.endswith('.csv'):
             context = {'error':'This is not a csv file, Please try again.'}
             return render(request, 'librarymanagement/uploadcsv.html', context)
@@ -52,10 +57,6 @@ def uploadcsv(request):
                         'uid':urlsafe_base64_encode(force_bytes(updated.pk)),
                         'token':account_activation_token.make_token(updated),
                     })
-                    # email_recipient = Student.objects.values('email')
-                    # email_recipient_lst=[]
-                    # for i in email_recipient:
-                    #     email_recipient_lst.append(i['email'])
                     recipient = (updated.email,)
                     print(recipient,'-----------')
                     send_email = EmailMessage(
@@ -65,7 +66,7 @@ def uploadcsv(request):
                             recipient,
                     )
                     send_email.send(fail_silently=False)
-                    
+
             except(IntegrityError, ValueError, ValidationError):
                 return HttpResponse('Please check your CSV file for any missing fields\
                                      and try again.')
@@ -79,7 +80,7 @@ def uploadcsv(request):
 # def emailpage(request):
 #     if request.method == "GET":
 #         context = {'form': LibraryRegisterForm()}
-#         return render(request, 'librarymanagement/RegisterPage.html', context)
+#         return render(request, 'librarymanagement/register_page.html', context)
 #     else:
 #         # username = request.POST['username']
 #         # email = request.POST['email']
@@ -159,14 +160,24 @@ def passwordgeneration(request, uidb64):
         return render(request, 'librarymanagement/password_generation.html', context)
     else:
         password_gen_form = PasswordForm(instance = user)
-        if request.POST['password1'] == request.POST['password2']:
-            student = LibraryRegistration.objects.create_user(username = user,
-                                                              password = request.POST['password1']
-                                                              )
-            student.save()
-            return redirect('loginpage')
+        pwd = request.POST['password1']
+        pwd2 = request.POST['password2']
+        special_sym =['$', '@', '#', '%', '!', '*']
+        if len(pwd)>=8 and any((char.isupper(), char.islower(), char.isdigit()) for char in pwd) and any(char in special_sym for char in pwd) :
+            if pwd == pwd2:
+                student = LibraryRegistration.objects.create_user(username = user,
+                                                                  password = pwd
+                                                                 )
+                student.save()
+                return redirect('loginpage')
+            else:
+                context = {'form':password_gen_form,'error':"Passwords didnt match"}
+                return render(request, 'librarymanagement/password_generation.html', context )
         else:
-            context = {'form':password_gen_form,'error':"Passwords didn't match"}
+            context = {'form':password_gen_form,'error':"Password should be of atleast 8 characters\
+                                                         & contain atleast 1 uppercase, 1 lowercase,\
+                                                         1 numeric and 1 special character."
+                                                         }
             return render(request, 'librarymanagement/password_generation.html', context )
 
 def staffactivate(request, uidb64, token):
@@ -184,7 +195,6 @@ def staffactivate(request, uidb64, token):
             user.is_invited = False
             user.is_active = True
             user.save()
-            #return HttpResponse('Account Activated please generate your password!!')
             return redirect(staffpasswordgeneration, uidb64 = uidb64)
     else:
         return HttpResponse('Activation link is invalid or expired!\
@@ -201,16 +211,24 @@ def staffpasswordgeneration(request, uidb64):
         return render(request, 'librarymanagement/password_generation.html', context)
     else:
         password_gen_form = StaffPasswordForm(instance = user)
-        if request.POST['password1'] == request.POST['password2']:
-            staff = LibraryRegistration.objects.get(pk=uid)
-            staff.set_password(request.POST['password1'])
-            staff.save()
-            return redirect('loginpage')
+        pwd = request.POST['password1']
+        pwd2 = request.POST['password2']
+        special_sym =['$', '@', '#', '%', '!', '*']
+        if len(pwd)>=8 and any((char.isupper(), char.islower(), char.isdigit()) for char in pwd) and any(char in special_sym for char in pwd) :
+            if pwd == pwd2:
+                staff = LibraryRegistration.objects.get(pk=uid)
+                staff.set_password(pwd)
+                staff.save()
+                return redirect('loginpage')
+            else:
+                context = {'form':password_gen_form,'error':"Passwords didnt match"}
+                return render(request, 'librarymanagement/password_generation.html', context )
         else:
-            context = {'form':password_gen_form,'error':"Passwords didn't match"}
+            context = {'form':password_gen_form,'error':"Password should be of atleast 8 characters\
+                                                         & contain atleast 1 uppercase, 1 lowercase,\
+                                                         1 numeric and 1 special character."
+                                                         }
             return render(request, 'librarymanagement/password_generation.html', context )
-
-
 
 def loginpage(request):
     """This is a login function for logging student into their library account"""
@@ -218,12 +236,16 @@ def loginpage(request):
         return render(request, 'librarymanagement/loginpage.html', {'loginform':LoginForm()} )
     else:
         login_form = LoginForm(request.POST)
+        obj = LibraryRegistration.objects.get(username = request.POST['username'])
         student = authenticate(request,
                                username = request.POST['username'],
                                password = request.POST['password1']
                                )
+        if obj.is_active is False:
+            context = {'loginform':login_form,'error':"The user seems to be inactive!"}
+            return render(request, 'librarymanagement/loginpage.html', context)
         if student is None:
-            context = {'loginform':login_form,'error':"Username or password didn't match"}
+            context = {'loginform':login_form,'error':"Username or password didnt match"}
             return render(request, 'librarymanagement/loginpage.html', context)
         else:
             login(request, student)
@@ -237,6 +259,7 @@ def issuebook(request):
         context = {'issuebookform':IssueBookForm()}
         return render(request, 'librarymanagement/issuebook.html', context)
     else:
+        book_obj = BookData.objects.get(pk = request.POST['select_book'])
         issue_form = IssueBookForm(request.POST)
         obj = issue_form.save(commit=False)
         print(request.user,'-----------')
@@ -250,13 +273,12 @@ def issuebook(request):
             obj.return_date = datetime.now() + timedelta(days=21)
         if obj.select_no_of_weeks == '4':
             obj.return_date = datetime.now() + timedelta(days=28)
-
-        book_obj = BookData.objects.get(pk = request.POST['select_book'])
         print(book_obj,'************')
         print(type(book_obj),'---------')
         book_obj.quantity = book_obj.quantity - 1
         book_obj.save()
         obj.save()
+        #return redirect(request, 'librarymanagement/viewbook.html',{'book':book_obj})
         return HttpResponse('Book Issued Successfully')
 
 # def staffregistration(request):
@@ -315,15 +337,26 @@ def staffentry(request):
                                                           is_active = False,
                                                           is_staff = True
                                                           )
-                return HttpResponse('activation email sent succesfully')
+                return HttpResponse('Staff details saved to database successfully.')
             except IntegrityError:
                 context =  {'staff_form':StaffForm(), 'error':"This username is already taken,\
                                                                please use a different username"}
                 return render(request, 'librarymanagement/staffactivation.html', context)
         else:
             staff_form = StaffForm()
-            context = {'staff_form':staff_form, 'error':"form didn't validate"}
-            return render(request, 'librarymanagement/staffactivation.html', context)
+            if len(request.POST['phone_no'])>10:
+                context = {'staff_form':staff_form,
+                           'error':'Contact No. should not be more than 10 digits'
+                           }
+                return render(request, 'librarymanagement/staffactivation.html', context)
+            else:
+                context = {'staff_form':staff_form, 'error':"form didnt validate"}
+                return render(request, 'librarymanagement/staffactivation.html', context)
+
+def viewbook(request,):
+    books = get_object_or_404(BookData)
+    if request.method == 'GET':
+        return render(request, 'librarymanagement/viewbook.html', {'book':books})
 
 def logoutpage(request):
     """This is a logout function"""

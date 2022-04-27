@@ -7,3 +7,4 @@ class LibrarymanagementConfig(AppConfig):
     def ready(self):
         from librarymanagement import updater
         updater.start()
+        

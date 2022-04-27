@@ -1,13 +1,16 @@
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+
 {% if user.is_authenticated %}
-Logged in user " {{ user.username }} "
+<p style = 'color: blue;'> Logged in user " {{ user.username }} "</p>
 {% endif %}
 
 <!DOCTYPE html>
 <html lang="en">
+<div align = "center">
 <head>
-    <h3>Welcome to Library Portal</h3>
-    <h4>Please Choose and Issue the Book</h4>
+    <p style="border:3px; border-style:solid; border-color:#1c5d83; padding: 1em; font-size: 25px; ">
+    Welcome to Library Portal <br>
+    Please Choose and Issue the Book </p>
     <h5>{{ error }}</h5>
 </head>
 <body>
@@ -15,7 +18,9 @@ Logged in user " {{ user.username }} "
         <form method="POST">
             {% csrf_token %}
             {{ issuebookform.as_p }}
-            <button type="submit">Submit</button>
+            <a href = "{% url 'viewbook' %}">Browse</a>
+            <br>
+            <button style = 'background-color: yellowgreen; height:40px; width: 100px; font-size: 18px;'type = 'submit'>Submit</button>
         </form>
         <br>
 
@@ -23,7 +28,7 @@ Logged in user " {{ user.username }} "
 </body>
 <form action="{% url 'logoutpage' %}" method="POST">
     {% csrf_token %}
-    <button type="'submit">Logout</button>
+    <button style = 'background-color: rgb(194, 67, 67); height:40px; width: 100px; font-size: 18px;'type = 'submit'>Logout</button>
     </form>
-
+</div>
 </html>

@@ -1,11 +1,11 @@
 from django.contrib.sites.shortcuts import get_current_site
-from django.utils.encoding import force_bytes, force_str
-from django.utils.http import urlsafe_base64_encode,urlsafe_base64_decode
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
 from django.template.loader import render_to_string
 from django.core.mail import EmailMessage
 from librarymanagement.models import LibraryRegistration
 from .tokens import account_activation_token
-from .views import staffentry
+from django.conf import settings
 
 def checkinitial():
 
@@ -17,7 +17,8 @@ def checkinitial():
         pk_obj = user.pk
 
         #domain = get_current_site(request).domain
-        domain = 'localhost:8000'
+        #domain = 'localhost:8000'
+        domain = settings.HOST_ADDR
         email_subject = 'University Library - Activate your Staff Account'
         email_body = render_to_string('librarymanagement/staff_email_activation.html', {
                         'updated': user,
@@ -37,3 +38,4 @@ def checkinitial():
         user.is_initial = False
         user.is_invited = True
         user.save()
+        
