@@ -20,18 +20,20 @@ from librarymanagement import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('uploadcsv/',views.uploadcsv, name= 'uploadcsv'),
-    #path('emailpage/',views.emailpage, name = 'emailpage'),
+    path('main/',views.uploadcsv, name= 'main'),
     path('activate/<uidb64>/<token>', views.activate, name = 'activate' ),
     path('staffactivate/<uidb64>/<token>', views.staffactivate, name = 'staffactivate' ),
     path('registration/<uidb64>', views.passwordgeneration, name = 'passwordgeneration'),
-    path('staffregistration/<uidb64>', views.staffpasswordgeneration, name = 'staffpasswordgeneration'),
+    path('staffregistration/<uidb64>',
+          views.staffpasswordgeneration,
+          name = 'staffpasswordgeneration'
+          ),
     path('loginpage/', views.loginpage, name = 'loginpage'),
     path('issuebook/', views.issuebook, name = 'issuebook'),
     path('logout/',views.logoutpage,name='logoutpage'),
     path('staffentry/', views.staffentry, name = 'staffentry'),
-    path('viewbook/', views.viewbook, name = 'viewbook')
-    #path('staffregistration/', views.staffregistration, name = 'staffregistration'),
-    #path('stafflogin/', views.stafflogin, name = 'stafflogin'),
+    path('studententry/', views.studententry, name = 'studententry'),
+    path('viewbook/', views.viewbook, name = 'viewbook'),
+    path('resetpassword/', views.resetpassword, name = 'resetpassword')
 
 ]

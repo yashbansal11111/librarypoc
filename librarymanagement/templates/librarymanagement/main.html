@@ -1,0 +1,58 @@
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+{% if messages %}
+    {% for message in messages %}
+        <div>
+            <strong>{{message|safe}}</strong>
+        </div>
+    {% endfor %}
+{% else %}
+<p style = 'color: blue;'>Upload in CSV File format only !</p>
+<div class='container text-center'>
+    <p style="border:3px; border-style:solid; border-color:#ff7b00;block-size: 100px; padding: 1em; font-size: 25px;background-color: #ff7b00;">Please select from the options below</p>
+<hr>
+    <br>
+    <body>
+    <form method = "POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div style = "position: relative;right: 400px;font-size: 25px;"> Upload a .csv file</div>
+    <div style = "position: relative ;right: 10px;bottom: 40px;font-size: 25px;border: 2px solid black;">Enter Student details manually</div>
+    <div style = "position: relative ;left: 400px;bottom: 80px;font-size: 25px;">Enter Staff details</div>
+    <br>
+    <div style = "position: relative;right: 340px;bottom:40px;">
+    <input type="file", style = 'height: 1cm; font-size: 18px;'name='file'> </div>
+    <br>
+    <br>
+    <a href="{% url 'studententry' %}" 
+    style="background-color: white;
+    border: 2px solid black;
+    color: green;
+    padding: 5px 10px;
+    text-align: center;
+    display: inline-block;
+    font-size: 20px;
+    margin: 10px 30px;
+    cursor: pointer;
+    text-decoration:none;position: relative;left: 190px;bottom:140px">Go to Student Entry Page</a>
+    <a href="{% url 'staffentry' %}" 
+    style="background-color: white;
+    border: 2px solid black;
+    color: green;
+    padding: 5px 10px;
+    text-align: center;
+    display: inline-block;
+    font-size: 20px;
+    margin: 10px 30px;
+    cursor: pointer;
+    text-decoration:none;position: relative;left: 300px;bottom:140px">Go to Staff Entry Page</a>
+    <button style = 'background-color: rgb(0, 174, 255); height: 50px; width: 100px; font-size: 17px;position: relative;bottom: 70px; right: 700px;'type = 'submit', onclick="myFunction()">Upload</button>
+
+<script>
+function myFunction() {
+  alert(" {{ error }}");
+}
+</script>
+</form>
+</div>
+</body>
+{% endif %}
+

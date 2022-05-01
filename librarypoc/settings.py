@@ -38,6 +38,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'librarymanagement',
+    'bootstrap4',
+    'bootstrap_datepicker_plus',
+    'crispy_forms',
 ]
 
 MIDDLEWARE = [
@@ -152,3 +155,5 @@ AUTH_USER_MODEL = 'librarymanagement.LibraryRegistration'
 DEFAULT_AUTO_FIELD='django.db.models.AutoField'
 
 HOST_ADDR = 'localhost:8000'
+DATE_INPUT_FORMATS = ('%Y-%m-%d')
+CRISPY_TEMPLATE_PACK = 'uni_form'

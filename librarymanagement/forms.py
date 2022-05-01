@@ -1,18 +1,6 @@
 from django import forms
-from librarymanagement.models import BookData, IssueBook, LibraryRegistration
-
-
-# class LibraryRegisterForm(forms.ModelForm):
-#     email = forms.EmailField(label = ("E-mail Address"),required=True)
-#     #password1 = forms.CharField(label = ("Password"),widget=forms.PasswordInput, required=True)
-#     #password2 = forms.CharField(label = ("Password Confirmation"),
-#     #                            widget=forms.PasswordInput,
-#     #                            required=True
-#     #                            )
-#     class Meta:
-#         model = Student
-#         #fields = ['email','password1', 'password2']
-#         fields = ['email']
+from django.conf import settings
+from librarymanagement.models import BookData, IssueBook, LibraryRegistration, Student
 
 
 class PasswordForm(forms.ModelForm):
@@ -73,14 +61,68 @@ class BookDataForm(forms.ModelForm):
         model = BookData
         fields = '__all__'
 
-class StaffForm(forms.ModelForm):
+class EntryForm(forms.ModelForm):
     """This is form class for Staff"""
-    username = forms.EmailField(label = ("Email-address"),required=True)
-    first_name = forms.CharField(max_length=100, label = ('First Name'), required=True)
-    last_name = forms.CharField(max_length=100, label = ('Last Name'), required=True)
-    phone_no = forms.IntegerField(label = ('Contact Number'), required=True)
+    username = forms.EmailField(widget=forms.TextInput(attrs={'placeholder':'Enter Email-Address'}),
+                                label = ("Email-address"),
+                                required=True
+                                )
+    first_name = forms.CharField(widget=forms.TextInput(attrs={'placeholder':'Enter First Name'}),
+                                 max_length=100,
+                                 label = ('First Name'),
+                                 required=True
+                                 )
+    last_name = forms.CharField(widget=forms.TextInput(attrs={'placeholder':'Enter Last Name'}),
+                                max_length=100,
+                                label = ('Last Name'),
+                                required=True
+                                )
+    phone = forms.IntegerField(widget=forms.TextInput(attrs={'placeholder':'Enter 10 digit mobile no.'}),
+                               label = ('Contact Number'),
+                               required=True
+                               )
     class Meta:
         """This is Meta Class"""
         model = LibraryRegistration
-        fields = ['username', 'first_name', 'last_name','phone_no']
-        
+        fields = ['username', 'first_name', 'last_name','phone']
+
+class StudentEntryForm(forms.ModelForm):
+    """This is form class for Staff"""
+    first_name = forms.CharField(widget=forms.TextInput(attrs={'placeholder':'Enter First Name'}),
+                                 max_length=100,
+                                 label = ('First Name'),
+                                 required=True
+                                 )
+    last_name = forms.CharField(widget=forms.TextInput(attrs={'placeholder':'Enter Last Name'}),
+                                max_length=100,
+                                label = ('Last Name'),
+                                required=True
+                                )
+    date_of_birth = forms.DateField(widget=forms.DateInput(format=settings.DATE_INPUT_FORMATS,
+                                                           attrs={'class': 'datepicker',
+                                                                  'type': 'date',
+                                                                  'placeholder':'Select a Date'
+                                                                  }
+                                                           )
+                                    )
+    username = forms.EmailField(widget=forms.TextInput(attrs={'placeholder':'Enter Email-Address'}),
+                                label = ("Email-address"),
+                                required=True
+                                )
+    phone = forms.IntegerField(widget=forms.TextInput(attrs={'placeholder':'Enter 10 digit mobile no.'}),
+                               label = ('Contact Number'),
+                               required=True
+                               )
+    class Meta:
+        """This is Meta Class"""
+        model = Student
+        fields = ['first_name', 'last_name','date_of_birth','username','phone']
+
+class PasswordResetForm(forms.ModelForm):
+    username = forms.EmailField(widget=forms.TextInput(attrs={'placeholder':'Enter Email-Address'}),
+                                label = ("Email"),
+                                required=True
+                                )
+    class Meta:
+        model = LibraryRegistration
+        fields = ['username']

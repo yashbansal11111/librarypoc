@@ -22,12 +22,12 @@ class Student(models.Model):
                                                should be treated as active. \
                                                Unselect this instead of deleting accounts.',
                                     verbose_name='active')
-    is_invited = models.BooleanField(default=True,
+    is_invited = models.BooleanField(default=False,
                                      help_text='Designates whether this user\
                                                 has received activation link on its email',
                                      verbose_name='Invited'
                                      )
-    is_initial = models.BooleanField(default=False,
+    is_initial = models.BooleanField(default=True,
                                      help_text='Designates whether this user\
                                                 is newly created and its\
                                                 email activation is still pending',
@@ -39,23 +39,21 @@ class Student(models.Model):
                                                sent on his/her email',
                                     verbose_name='Opened Link'
                                     )
+    activation_link = models.CharField(max_length=200, default=None, null=True)
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['first_name','last_name', 'date_of_birth', 'email', 'phone']
 
     def __str__(self):
-        return self.first_name+' '+self.last_name
+        return str(self.email)
 
 
 class LibraryRegistration(AbstractUser):
     """This is model class for Student Registration"""
-    #email_address = models.OneToOneField(Student,unique=True, on_delete=models.CASCADE, null=True)
-    phone_no = models.BigIntegerField(validators=[MaxValueValidator(9999999999),
+    phone = models.BigIntegerField(validators=[MaxValueValidator(9999999999),
                                                   MinValueValidator(1000000000)],
                                       unique=True,
                                       null=True
                                       )
-    #password1 = models.CharField(max_length=32)
-    #password2 = models.CharField(max_length=32)
     is_initial = models.BooleanField(default=False,
                                      help_text='Designates whether this user\
                                                 is newly created and its\
@@ -73,6 +71,7 @@ class LibraryRegistration(AbstractUser):
                                                sent on his/her email',
                                     verbose_name='Opened Link'
                                     )
+    activation_link = models.CharField(max_length=200, default=None, null=True)
     def __str__(self):
         return str(self.username)
 

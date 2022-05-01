@@ -14,7 +14,7 @@ from django.template.loader import render_to_string
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import permission_required, login_required
 from librarymanagement.models import LibraryRegistration, Student, BookData
-from librarymanagement.forms import IssueBookForm, PasswordForm, LoginForm, StaffForm, StaffPasswordForm
+from librarymanagement.forms import IssueBookForm, PasswordForm, LoginForm, EntryForm, StaffPasswordForm, StudentEntryForm, PasswordResetForm
 from .tokens import account_activation_token
 
 # Create your views here.
@@ -22,17 +22,17 @@ from .tokens import account_activation_token
 def uploadcsv(request):
     """This is a function for uploading CSV file containing student's data"""
     if request.method == 'GET':
-        return render(request, 'librarymanagement/uploadcsv.html' )
+        return render(request, 'librarymanagement/main.html' )
     else:
         try:
             csv_file = request.FILES['file']
         except KeyError:
             context = {'error':'No files selected to upload, please select a file from your system'}
-            return render(request, 'librarymanagement/uploadcsv.html', context)
+            return render(request, 'librarymanagement/main.html', context)
 
         if not csv_file.name.endswith('.csv'):
             context = {'error':'This is not a csv file, Please try again.'}
-            return render(request, 'librarymanagement/uploadcsv.html', context)
+            return render(request, 'librarymanagement/main.html', context)
         else:
             try:
                 data_set = csv_file.read().decode('UTF-8')
@@ -50,7 +50,9 @@ def uploadcsv(request):
                     print(type(updated),'************')
                     updated.save()
                     domain = get_current_site(request).domain
-                    email_subject = 'University Library - Activate your Account'
+                    uid = urlsafe_base64_encode(force_bytes(updated.pk))
+                    token = account_activation_token.make_token(updated)
+                    email_subject = 'University Library - Activate your Student Account'
                     email_body = render_to_string('librarymanagement/email_activation.html', {
                         'updated': updated,
                         'domain': domain,
@@ -66,6 +68,10 @@ def uploadcsv(request):
                             recipient,
                     )
                     send_email.send(fail_silently=False)
+                    updated.activation_link = "http://{}/activate/{}/{}".format(domain, uid, token)
+                    updated.is_initial = False
+                    updated.is_invited = True
+                    updated.save()
 
             except(IntegrityError, ValueError, ValidationError):
                 return HttpResponse('Please check your CSV file for any missing fields\
@@ -137,12 +143,14 @@ def activate(request, uidb64, token):
     except(TypeError, ValueError, OverflowError, ObjectDoesNotExist):
         user = None
     if user is not None and account_activation_token.check_token(user, token):
-        if user.is_active is True:
-            return HttpResponse('Your email is already activated.\
-                                 Please login to your library account to proceed further.')
+        if user.is_active or user.open_link is True:
+            return HttpResponse('Link is expired, to request for a new link\
+                                 go to the loginpage and hit reset password\
+                                 a new activation link will be sent to your email,\
+                                 use that link to create a new password.')
         else:
             user.is_invited = False
-            user.is_active = True
+            user.open_link = True
             user.save()
             return redirect(passwordgeneration, uidb64 = uidb64)
     else:
@@ -151,23 +159,35 @@ def activate(request, uidb64, token):
                              or the link is expired.')
 
 def passwordgeneration(request, uidb64):
-    """This is a function for generating password for creating student's library account"""
+    """This is a function for creating password for creating student's library account"""
     uid = force_str(urlsafe_base64_decode(uidb64))
-    user = Student.objects.get(pk=uid).email
+    user = Student.objects.get(pk=uid)
+    user_email = user.email
+    user_first_name = user.first_name
+    user_last_name = user.last_name
+    user_phone = user.phone
+    user_activation_link = user.activation_link
     if request.method == 'GET':
-        password_gen_form = PasswordForm(instance = user)
+        password_gen_form = PasswordForm(instance = user_email)
         context = {'form':password_gen_form}
         return render(request, 'librarymanagement/password_generation.html', context)
     else:
-        password_gen_form = PasswordForm(instance = user)
+        password_gen_form = PasswordForm(instance = user_email)
         pwd = request.POST['password1']
         pwd2 = request.POST['password2']
         special_sym =['$', '@', '#', '%', '!', '*']
         if len(pwd)>=8 and any((char.isupper(), char.islower(), char.isdigit()) for char in pwd) and any(char in special_sym for char in pwd) :
             if pwd == pwd2:
-                student = LibraryRegistration.objects.create_user(username = user,
-                                                                  password = pwd
+                student = LibraryRegistration.objects.create_user(username = user_email,
+                                                                  password = pwd,
+                                                                  first_name = user_first_name,
+                                                                  last_name = user_last_name,
+                                                                  phone = user_phone,
+                                                                  activation_link = user_activation_link
                                                                  )
+                user.open_link = False
+                user.is_active = True
+                user.save()
                 student.save()
                 return redirect('loginpage')
             else:
@@ -175,25 +195,27 @@ def passwordgeneration(request, uidb64):
                 return render(request, 'librarymanagement/password_generation.html', context )
         else:
             context = {'form':password_gen_form,'error':"Password should be of atleast 8 characters\
-                                                         & contain atleast 1 uppercase, 1 lowercase,\
+                                                         and contain atleast 1 uppercase, 1 lowercase,\
                                                          1 numeric and 1 special character."
                                                          }
             return render(request, 'librarymanagement/password_generation.html', context )
 
 def staffactivate(request, uidb64, token):
-    """This is a function for activating student's email"""
+    """This is a function for activating staff's email"""
     try:
         uid = force_str(urlsafe_base64_decode(uidb64))
         user = LibraryRegistration.objects.get(pk=uid)
     except(TypeError, ValueError, OverflowError, ObjectDoesNotExist):
         user = None
     if user is not None and account_activation_token.check_token(user, token):
-        if user.is_active is True:
-            return HttpResponse('Your email is already activated.\
-                                 Please login to your library portal to proceed further.')
+        if user.is_active or user.open_link is True:
+            return HttpResponse('Link is expired, to request for a new link\
+                                 go to the loginpage and hit reset password\
+                                 a new activation link will be sent to your email,\
+                                 use that link to create a new password.')
         else:
             user.is_invited = False
-            user.is_active = True
+            user.open_link = True
             user.save()
             return redirect(staffpasswordgeneration, uidb64 = uidb64)
     else:
@@ -202,23 +224,26 @@ def staffactivate(request, uidb64, token):
                              or the link is expired.')
 
 def staffpasswordgeneration(request, uidb64):
-    """This is a function for generating password for creating student's library account"""
+    """This is a function for generating password for creating staff's library account"""
     uid = force_str(urlsafe_base64_decode(uidb64))
-    user = LibraryRegistration.objects.get(pk=uid).username
+    user = LibraryRegistration.objects.get(pk=uid)
+    user_username = user.username
     if request.method == 'GET':
-        password_gen_form = StaffPasswordForm(instance = user)
+        password_gen_form = StaffPasswordForm(instance = user_username)
         context = {'form':password_gen_form}
         return render(request, 'librarymanagement/password_generation.html', context)
     else:
-        password_gen_form = StaffPasswordForm(instance = user)
+        password_gen_form = StaffPasswordForm(instance = user_username)
         pwd = request.POST['password1']
         pwd2 = request.POST['password2']
         special_sym =['$', '@', '#', '%', '!', '*']
         if len(pwd)>=8 and any((char.isupper(), char.islower(), char.isdigit()) for char in pwd) and any(char in special_sym for char in pwd) :
             if pwd == pwd2:
-                staff = LibraryRegistration.objects.get(pk=uid)
-                staff.set_password(pwd)
-                staff.save()
+                #staff = LibraryRegistration.objects.get(pk=uid)
+                user.set_password(pwd)
+                user.open_link = False
+                user.is_active = True
+                user.save()
                 return redirect('loginpage')
             else:
                 context = {'form':password_gen_form,'error':"Passwords didnt match"}
@@ -231,7 +256,7 @@ def staffpasswordgeneration(request, uidb64):
             return render(request, 'librarymanagement/password_generation.html', context )
 
 def loginpage(request):
-    """This is a login function for logging student into their library account"""
+    """This is a login function for logging users into their library account"""
     if request.method == 'GET':
         return render(request, 'librarymanagement/loginpage.html', {'loginform':LoginForm()} )
     else:
@@ -278,85 +303,182 @@ def issuebook(request):
         book_obj.quantity = book_obj.quantity - 1
         book_obj.save()
         obj.save()
-        #return redirect(request, 'librarymanagement/viewbook.html',{'book':book_obj})
         return HttpResponse('Book Issued Successfully')
-
-# def staffregistration(request):
-#     """This is a function with which staff can register to the library portal"""
-#     if request.method == 'GET':
-#         staff_form = StaffForm()
-#         return render(request, 'librarymanagement/staffregistration.html', {'form': staff_form})
-#     else:
-#         form = StaffForm(request.POST)
-#         if form.is_valid():
-#             if request.POST['password1'] == request.POST['password2']:
-#                 try:
-#                     user = LibraryRegistration.objects.create_user(username = request.POST['username'],
-#                                                                    password=request.POST['password1'],
-#                                                                    email = request.POST['email'],
-#                                                                    is_staff = True
-#                                                                    )
-#                     user.save()
-#                     return redirect('stafflogin')
-#                 except IntegrityError:
-#                     context =  {'form':form, 'error':"This username is already taken,\
-#                                                       please use a different username"}
-#                     return render(request, 'librarymanagement/staffregistration.html', context)
-#         form.save()
-
-# def stafflogin(request):
-#     """This is a function with which staff can login to the library portal"""
-#     if request.method == 'GET':
-#         return render(request, 'librarymanagement/stafflogin.html', {'forms':AuthenticationForm()})
-#     else:
-#         user = authenticate(request, username=request.POST['username'],
-#                             password=request.POST['password'])
-#         if user is None:
-#             context =  {'forms':AuthenticationForm(), 'error':'Username & Password did not match,\
-#                                                                try again'}
-#             return render(request, 'librarymanagement/stafflogin.html', context)
-#         else:
-#             login(request, user)
-#             return HttpResponse('Welcome to library portal.')
 
 @permission_required('admin.can_add_log_entry')
 def staffentry(request):
     """This is a function with which admin can input staff details to the database"""
     if request.method == 'GET':
-        context = {'staff_form': StaffForm()}
-        return render(request, 'librarymanagement/staffactivation.html', context)
+        context = {'entry_form': EntryForm()}
+        return render(request, 'librarymanagement/detail_entry.html', context)
     else:
-        staff_form = StaffForm(request.POST)
-        if staff_form.is_valid():
+        entry_form = EntryForm(request.POST)
+        if entry_form.is_valid():
             try:
                 user = LibraryRegistration.objects.create(username = request.POST['username'],
                                                           first_name = request.POST['first_name'],
                                                           last_name = request.POST['last_name'],
-                                                          phone_no = request.POST['phone_no'],
+                                                          phone = request.POST['phone'],
                                                           is_initial = True,
                                                           is_active = False,
                                                           is_staff = True
                                                           )
-                return HttpResponse('Staff details saved to database successfully.')
+                return HttpResponse('Details saved to database successfully.')
             except IntegrityError:
-                context =  {'staff_form':StaffForm(), 'error':"This username is already taken,\
+                context =  {'entry_form':EntryForm(), 'error':"This username is already taken,\
                                                                please use a different username"}
-                return render(request, 'librarymanagement/staffactivation.html', context)
+                return render(request, 'librarymanagement/detail_entry.html', context)
         else:
-            staff_form = StaffForm()
-            if len(request.POST['phone_no'])>10:
-                context = {'staff_form':staff_form,
+            entry_form = EntryForm()
+            if len(request.POST['phone'])>10:
+                context = {'entry_form':entry_form,
                            'error':'Contact No. should not be more than 10 digits'
                            }
-                return render(request, 'librarymanagement/staffactivation.html', context)
+                return render(request, 'librarymanagement/detail_entry.html', context)
             else:
-                context = {'staff_form':staff_form, 'error':"form didnt validate"}
-                return render(request, 'librarymanagement/staffactivation.html', context)
+                context = {'entry_form':entry_form, 'error':"form didnt validate"}
+                return render(request, 'librarymanagement/detail_entry.html', context)
+
+@permission_required('admin.can_add_log_entry')
+def studententry(request):
+    """This is a function with which admin can input student details to the database"""
+    if request.method == 'GET':
+        context = {'entry_form': StudentEntryForm()}
+        return render(request, 'librarymanagement/detail_entry.html', context)
+    else:
+        entry_form = StudentEntryForm(request.POST)
+        if entry_form.is_valid():
+            try:
+                user = Student.objects.create(email = request.POST['username'],
+                                              first_name = request.POST['first_name'],
+                                              last_name = request.POST['last_name'],
+                                              phone = request.POST['phone'],
+                                              date_of_birth = request.POST['date_of_birth']
+                                              )
+                return HttpResponse('Details saved to database successfully.')
+            except IntegrityError:
+                context =  {'entry_form':StudentEntryForm(), 'error':"This username is already taken,\
+                                                              please use a different username"}
+                return render(request, 'librarymanagement/detail_entry.html', context)
+        else:
+            entry_form = StudentEntryForm()
+            if len(request.POST['phone'])>10:
+                context = {'entry_form':entry_form,
+                           'error':'Contact No. should not be more than 10 digits'
+                           }
+                return render(request, 'librarymanagement/detail_entry.html', context)
+            else:
+                context = {'entry_form':entry_form, 'error':"form didnt validate"}
+                return render(request, 'librarymanagement/detail_entry.html', context)
 
 def viewbook(request,):
     books = get_object_or_404(BookData)
     if request.method == 'GET':
         return render(request, 'librarymanagement/viewbook.html', {'book':books})
+
+def resetpassword(request):
+    if request.method == 'GET':
+        password_reset_form = PasswordResetForm()
+        context = {'password_reset_form':password_reset_form}
+        return render(request, 'librarymanagement/reset_password.html', context)
+    else:
+        password_reset_form = PasswordResetForm(request.POST)
+        email = request.POST['username']
+        user_list = list(LibraryRegistration.objects.values_list('username', flat=True))
+        student_list = list(Student.objects.values_list('email',flat=True))
+        #student_obj = Student.objects.get(email = email)
+        #user_obj = LibraryRegistration.objects.get(username = email)
+        print(type(email),'//////////////')
+        print(student_list,'*/***********')
+        print((user_list),'-----------')
+        if email in student_list:
+            student_obj = Student.objects.get(email = email)
+            if email not in user_list and student_obj.open_link is True and student_obj.is_active is False:
+                domain = get_current_site(request).domain
+                uid = urlsafe_base64_encode(force_bytes(student_obj.pk))
+                token = account_activation_token.make_token(student_obj)
+                email_subject = 'University Library - Create your password and activate your Student Account'
+                email_body = render_to_string('librarymanagement/email_activation.html', {
+                    'updated': student_obj,
+                    'domain': domain,
+                    'uid':urlsafe_base64_encode(force_bytes(student_obj.pk)),
+                    'token':account_activation_token.make_token(student_obj),
+                })
+                send_email = EmailMessage(
+                        email_subject,
+                        email_body,
+                        'noreply@librarian.com',
+                        (email,)
+                )
+                send_email.send(fail_silently=False)
+                student_obj.activation_link = "http://{}/activate/{}/{}".format(domain, uid, token)
+                student_obj.open_link = False
+                student_obj.is_invited = True
+                student_obj.save()
+                return HttpResponse('Email has been sent to you.')
+            # elif email in user_list:
+            #     if len(user_obj.password)>0 and user_obj.is_staff is False and user_obj.is_active is True:
+            #         domain = get_current_site(request).domain
+            #         uid = urlsafe_base64_encode(force_bytes(student_obj.pk))
+            #         token = account_activation_token.make_token(student_obj)
+            #         email_subject = 'University Library - Reset your password'
+            #         email_body = render_to_string('librarymanagement/email_activation.html', {
+            #             'updated': student_obj,
+            #             'domain': domain,
+            #             'uid':urlsafe_base64_encode(force_bytes(student_obj.pk)),
+            #             'token':account_activation_token.make_token(student_obj),
+            #         })
+            #         send_email = EmailMessage(
+            #                 email_subject,
+            #                 email_body,
+            #                 'noreply@librarian.com',
+            #                 (email,)
+            #         )
+            #         send_email.send(fail_silently=False)
+            #         student_obj.activation_link = "http://{}/activate/{}/{}".format(domain, uid, token)
+            #         user_obj.activation_link = "http://{}/activate/{}/{}".format(domain, uid, token)
+            #         student_obj.open_link = False
+            #         user_obj.is_active = False
+            #         student_obj.is_active = False
+            #         user_obj.is_invited = True
+            #         student_obj.is_invited = True
+            #         student_obj.save()
+            #         user_obj.save()
+            #         return HttpResponse('Email has been sent to you.')
+            # else:
+            #     context = {'password_reset_form':password_reset_form,'error':'Email does not exist!'}
+            #     return render(request, 'librarymanagement/reset_password.html', context)
+        elif email in user_list:
+            staff_obj = LibraryRegistration.objects.get(username = email)
+            if staff_obj.is_staff and staff_obj.open_link is True and staff_obj.is_active is False:
+                domain = get_current_site(request).domain
+                uid = urlsafe_base64_encode(force_bytes(staff_obj.pk))
+                token = account_activation_token.make_token(staff_obj)
+                email_subject = 'University Library - Create your password and activate your Staff Account'
+                email_body = render_to_string('librarymanagement/staff_email_activation.html', {
+                    'updated': staff_obj,
+                    'domain': domain,
+                    'uid':urlsafe_base64_encode(force_bytes(staff_obj.pk)),
+                    'token':account_activation_token.make_token(staff_obj),
+                })
+                send_email = EmailMessage(
+                        email_subject,
+                        email_body,
+                        'noreply@librarian.com',
+                        (email,)
+                )
+                send_email.send(fail_silently=False)
+                staff_obj.activation_link = "http://{}/activate/{}/{}".format(domain, uid, token)
+                staff_obj.open_link = False
+                staff_obj.is_invited = True
+                staff_obj.save()
+                return HttpResponse('Email has been sent to you.')
+            else:
+                context = {'password_reset_form':password_reset_form,'error':'Email does not exist!'}
+                return render(request, 'librarymanagement/reset_password.html', context)
+        else:
+            context = {'password_reset_form':password_reset_form,'error':'Email does not exist!'}
+            return render(request, 'librarymanagement/reset_password.html', context)
 
 def logoutpage(request):
     """This is a logout function"""
