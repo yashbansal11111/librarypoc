@@ -1,0 +1,22 @@
+{% include "librarymanagement/staff/base.html" %}
+    <div align = left class='container text-center'style= "margin-left: 10px;">
+    
+        <h1 style="color: darkgoldenrod;">Complete list of books available</h1>
+        <form method="GET" action = "{% url 'addbooks' %}">
+            <button id="search_submit" style = 'background-color:darkgoldenrod; height: 30px; width: 200px; font-size: 18px;position: absolute;left: 1100px;top: 80px;'type = 'submit' >Add Books</button>
+        </form>
+        <hr style="height: 5px;background-color: gray;">
+    <ol>
+        {% for field in booksliststaff %}
+        <li>
+            <b>Bookname: <b>{{ field.bookname }} <br>
+            <b>Quantity Left: </b>{{ field.quantity }} <br>
+            <form method="POST" action = "{% url 'deletebooks' field.id %}">
+                {% csrf_token %}
+                <button id="search_submit" style = 'background-color:red; height: 30px; width: 80px; font-size: 18px;position:relative;left: 1100px;bottom: 30px;'type = 'submit' >Delete</button>
+            </form>
+        </li>
+        <br>
+        <hr>
+        {% endfor %}
+    </ol>

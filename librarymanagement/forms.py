@@ -22,7 +22,7 @@ class PasswordForm(forms.ModelForm):
 
 class StaffPasswordForm(forms.ModelForm):
     """This is Form class for Password Generation"""
-    username = forms.EmailField(label = ("Email-address"),required=True,disabled=True)
+    email_address = forms.EmailField(required=True,disabled=True)
     password1 = forms.CharField(label = ("Password"),widget=forms.PasswordInput, required=True)
     password2 = forms.CharField(label = ("Password Confirmation"),
                                 widget=forms.PasswordInput,
@@ -31,11 +31,11 @@ class StaffPasswordForm(forms.ModelForm):
     class Meta:
         """This is Meta class """
         model = LibraryRegistration
-        fields = ['username','password1', 'password2']
+        fields = ['email_address','password1', 'password2']
 
     def __init__(self, instance):
         super().__init__()
-        self.fields['username'].initial = instance
+        self.fields['email_address'].initial = instance
 
 class LoginForm(forms.ModelForm):
     """This is Form class for Student Login"""
@@ -56,13 +56,16 @@ class IssueBookForm(forms.ModelForm):
 
 class BookDataForm(forms.ModelForm):
     """This is Form class for Book Database"""
+    bookname = forms.CharField(widget = forms.TextInput(attrs={'placeholder':'Enter a bookname...'}),
+                               required=True)
+    quantity = forms.IntegerField(required=True)
     class Meta:
         """This is Meta Class"""
         model = BookData
         fields = '__all__'
 
 class EntryForm(forms.ModelForm):
-    """This is form class for Staff"""
+    """This is form class for Staff entry by admin"""
     username = forms.EmailField(widget=forms.TextInput(attrs={'placeholder':'Enter Email-Address'}),
                                 label = ("Email-address"),
                                 required=True
@@ -77,17 +80,18 @@ class EntryForm(forms.ModelForm):
                                 label = ('Last Name'),
                                 required=True
                                 )
-    phone = forms.IntegerField(widget=forms.TextInput(attrs={'placeholder':'Enter 10 digit mobile no.'}),
+    phone = forms.IntegerField(widget=forms.TextInput(
+                               attrs={'placeholder':'Enter 10 digit mobile no.'}),
                                label = ('Contact Number'),
                                required=True
                                )
     class Meta:
         """This is Meta Class"""
         model = LibraryRegistration
-        fields = ['username', 'first_name', 'last_name','phone']
+        fields = ['first_name', 'last_name','username','phone']
 
 class StudentEntryForm(forms.ModelForm):
-    """This is form class for Staff"""
+    """This is form class for Student entry by admin"""
     first_name = forms.CharField(widget=forms.TextInput(attrs={'placeholder':'Enter First Name'}),
                                  max_length=100,
                                  label = ('First Name'),
@@ -109,7 +113,8 @@ class StudentEntryForm(forms.ModelForm):
                                 label = ("Email-address"),
                                 required=True
                                 )
-    phone = forms.IntegerField(widget=forms.TextInput(attrs={'placeholder':'Enter 10 digit mobile no.'}),
+    phone = forms.IntegerField(widget=forms.TextInput(
+                               attrs={'placeholder':'Enter 10 digit mobile no.'}),
                                label = ('Contact Number'),
                                required=True
                                )
@@ -119,10 +124,52 @@ class StudentEntryForm(forms.ModelForm):
         fields = ['first_name', 'last_name','date_of_birth','username','phone']
 
 class PasswordResetForm(forms.ModelForm):
+    """This is a form for reset password main page"""
     username = forms.EmailField(widget=forms.TextInput(attrs={'placeholder':'Enter Email-Address'}),
                                 label = ("Email"),
                                 required=True
                                 )
     class Meta:
+        """This is Meta Class"""
         model = LibraryRegistration
         fields = ['username']
+
+class ExistingUserPassResetForm(forms.ModelForm):
+    """This is a form for resetting password for existing users."""
+    password1 = forms.CharField(label = ('Enter Current Password'), widget = forms.PasswordInput(attrs={'placeholder':'Enter Current Password'}), required=True)
+    password2 = forms.CharField(label = ('Enter New Password'), widget = forms.PasswordInput(attrs={'placeholder':'Enter New Password'}), required=True)
+    password3 = forms.CharField(label = ('Confirm New Password'), widget = forms.PasswordInput(attrs={'placeholder':'Re-enter New Password','autocomplete': 'off','data-toggle': 'password'}), required=True)
+    class Meta:
+        """This is Meta Class"""
+        model = LibraryRegistration
+        fields = ['password1', 'password2', 'password3']
+
+class StudentEditForm(forms.ModelForm):
+    """This is form class for Student entry by admin"""
+    first_name = forms.CharField(widget=forms.TextInput(attrs={'placeholder':'Enter First Name'}),
+                                 max_length=100,
+                                 label = ('First Name'),
+                                 required=True
+                                 )
+    last_name = forms.CharField(widget=forms.TextInput(attrs={'placeholder':'Enter Last Name'}),
+                                max_length=100,
+                                label = ('Last Name'),
+                                required=True
+                                )
+    date_of_birth = forms.DateField(widget=forms.DateInput(format=settings.DATE_INPUT_FORMATS,
+                                                           attrs={'class': 'datepicker',
+                                                                  'type': 'date',
+                                                                  'placeholder':'Select a Date'
+                                                                  }
+                                                           )
+                                    )
+    phone = forms.IntegerField(widget=forms.TextInput(
+                               attrs={'placeholder':'Enter 10 digit mobile no.'}),
+                               label = ('Contact Number'),
+                               required=True
+                               )
+    is_active = forms.BooleanField(label = ("Active Status"), required=False)
+    class Meta:
+        """This is Meta Class"""
+        model = Student
+        fields = ['first_name', 'last_name','date_of_birth','phone','is_active']

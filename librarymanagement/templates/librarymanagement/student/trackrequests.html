@@ -1,0 +1,35 @@
+{% include "librarymanagement/student/base.html" %}
+{% if user.is_authenticated %}
+<p style = 'color: blue; margin: 0px;'> Logged in user " {{ user.username }} "</p>
+{% endif %}
+<br>
+<div align = left class='container text-center' style= "margin-left: 10px;">
+    
+    <h1 style="color: darkgoldenrod;">Book Requests</h1>
+    <hr style="height: 5px;background-color: gray;">
+    <ol>
+        {% for field in user_obj %}
+        <li>
+              <b>Bookname: </b> {{ field.select_book }} <br>
+              <b>No. of Weeks: </b>{{ field.select_no_of_weeks }} <br>
+              <b>Requested Date: </b>{{ field.request_date }} <br>
+              <b>Request Status: </b>
+              {% if field.is_pending %}
+                  <p style="color: orange ;font-weight: bold;margin: auto;">Pending</p> 
+              {% elif field.is_approved %}
+              <p style="color: green ;font-weight: bold;margin: auto;">Approved</p> 
+              <b>Issue Date: </b>{{ field.review_date }} <br>
+              <b>Expected Return Date: </b>{{ field.expected_return_date }}
+              {% elif field.is_rejected %}
+              <p style="color: red;font-weight: bold;margin: auto;">Rejected</p>
+              <b>Request </b><b style="color: red;">Rejection</b><b> Date: </b>{{ field.review_date }} <br>
+              {% else %}
+              <p style="color: red;margin: auto;">Some issue has occured, it may take some time to update status!</p> 
+              {% endif %}
+        </li>
+        <br>
+        <hr>
+        {% endfor %}
+    </ol>
+
+</div>

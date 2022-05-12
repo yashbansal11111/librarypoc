@@ -1,0 +1,23 @@
+{% include "librarymanagement/staff/base.html" %}
+
+    <div align = left class='container text-center' style= "margin-left: 10px;">
+    
+        <h1 style="color: darkgoldenrod;">Rejected Requests</h1>
+        <hr style="height: 5px;background-color: gray;">
+        <ol>
+            {% for field in user_obj %}
+            <li>
+                <b>Student Username: {{ field.username }} </b><br>
+                <b>Bookname: </b> {{ field.select_book }} <br>
+                <b>No. of Weeks: </b>{{ field.select_no_of_weeks }} <br>
+                <b>Request Status: </b>
+                {% if field.is_rejected %}
+                    <p style="color: red ;font-weight: bold;margin: auto;">Rejected</p>
+                {% endif %} <br>
+                <b>Requested Date: </b>{{ field.request_date }} <br>
+                <b>Request </b><b style="color: red;">Rejection</b><b> Date: </b>{{ field.review_date }} <br>
+            </li>
+            <hr>
+            {% endfor %}
+        </ol>
+    </div>

@@ -1,0 +1,18 @@
+{% include "librarymanagement/staff/base.html" %}
+    <div align = center class='container text-center'>
+    
+        <h1 style="color: darkgoldenrod;">Edit Student Details</h1>
+        <p><b style="color: red;">Note</b> - Fill in the defined fields below and hit <b>Save Changes</b> for saving student details to the database.</p>
+        <hr>
+<p style = 'color: green;font-size: 20px;'><b> {{ student_obj.email }}</b></p>
+
+
+<form method = 'POST'> 
+    {% csrf_token %}
+    <b>{{ student_edit_form.as_p }} </b>
+    <button style = "font-size: 15px;
+    font-family: sans-serif;
+    background-color: chocolate" type="submit">Save Changes</button>
+</form>
+    </div>
+

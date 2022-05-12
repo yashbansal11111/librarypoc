@@ -1,0 +1,28 @@
+{% include "librarymanagement/student/base.html" %}
+{% if user.is_authenticated %}
+<p style = 'color: blue; margin: 0px;'> Logged in user " {{ user.username }} "</p>
+{% endif %}
+<br>
+<div align = left class='container text-center' style= "margin-left: 10px;">
+    
+    <h1 style="color: darkgoldenrod;">All Subscribed Books History</h1>
+    <hr style="height: 5px;background-color: gray;">
+    <ol>
+        {% for field in user_obj %}
+        <li>
+            {% if field.is_returned %}
+            <b>Bookname: </b> {{ field.select_book }} <br>
+            <b>No. of Weeks: </b>{{ field.select_no_of_weeks }} <br>
+            <b>Request Status: </b>
+            <p style="color: blue ;font-weight: bold;margin: auto;">Book Returned</p> <br>
+            <b>Requested Date:</b>{{ field.request_date }} <br>
+            <b>Issue Date: </b>{{ field.review_date }} <br>
+            <b>Expected Return Date: </b>{{ field.expected_return_date }} <br>
+            <b>Actual Return Date: </b>{{ field.actual_return_date }} 
+            {% endif %}
+        </li>
+        <br>
+        <hr>
+        {% endfor %}
+    </ol>
+</div>

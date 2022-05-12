@@ -1,0 +1,26 @@
+{% include "librarymanagement/student/base.html" %}
+{% if user.is_authenticated %}
+<p style = 'color: blue;margin: 0px;'> Logged in user " {{ user.username }} "</p>
+{% endif %}
+<div align = center class='container text-center'>
+    
+    <h1 style="color: darkgoldenrod;">Select a Book</h1>
+    <p>Select a book from the drop down below.</p>
+    <p><b style="color: red;">Note</b> - Selecting no. of weeks is not final. Once your request is approved it may vary depending upon book demand.</p>
+    <p>You can browse Book Info by navigating to <b>Books</b> Tab and searching for the book you want.</p>
+    <hr>
+
+<body>
+    <br>
+    <form method="POST">
+        {% csrf_token %}
+       <b style="font-size:20px;"> {{ issuebookform.as_p }}</b>
+        <br>
+        <p style = 'color: red;'>{{ error }}</p>
+        <button style = 'background-color: yellowgreen; height:40px; width: 160px; font-size: 18px;'type = 'submit'>Send Request</button>
+    </form>
+    <br>
+
+</form>
+</body>
+</div>
