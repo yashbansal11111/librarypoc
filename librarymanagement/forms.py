@@ -1,6 +1,7 @@
 from django import forms
 from django.conf import settings
 from librarymanagement.models import BookData, IssueBook, LibraryRegistration, Student
+from django.core.validators import MaxValueValidator, MinValueValidator
 
 
 class PasswordForm(forms.ModelForm):
@@ -49,10 +50,11 @@ class LoginForm(forms.ModelForm):
 
 class IssueBookForm(forms.ModelForm):
     """This is Form class for Issuing Book to Students"""
+    select_no_of_days = forms.IntegerField(disabled=True, initial=7,validators=[MaxValueValidator(28)])
     class Meta:
         """This is Meta class """
         model = IssueBook
-        fields = ['select_book', 'select_no_of_weeks']
+        fields = ['select_book','select_no_of_days']
 
 class BookDataForm(forms.ModelForm):
     """This is Form class for Book Database"""
@@ -134,15 +136,24 @@ class PasswordResetForm(forms.ModelForm):
         model = LibraryRegistration
         fields = ['username']
 
+# class ExistingUserPassResetForm(forms.ModelForm):
+#     """This is a form for resetting password for existing users."""
+#     password1 = forms.CharField(label = ('Enter Current Password'), widget = forms.PasswordInput(attrs={'placeholder':'Enter Current Password'}), required=True)
+#     password2 = forms.CharField(label = ('Enter New Password'), widget = forms.PasswordInput(attrs={'placeholder':'Enter New Password'}), required=True)
+#     password3 = forms.CharField(label = ('Confirm New Password'), widget = forms.PasswordInput(attrs={'placeholder':'Re-enter New Password','autocomplete': 'off','data-toggle': 'password'}), required=True)
+#     class Meta:
+#         """This is Meta Class"""
+#         model = LibraryRegistration
+#         fields = ['password1', 'password2', 'password3']
+
 class ExistingUserPassResetForm(forms.ModelForm):
     """This is a form for resetting password for existing users."""
-    password1 = forms.CharField(label = ('Enter Current Password'), widget = forms.PasswordInput(attrs={'placeholder':'Enter Current Password'}), required=True)
     password2 = forms.CharField(label = ('Enter New Password'), widget = forms.PasswordInput(attrs={'placeholder':'Enter New Password'}), required=True)
     password3 = forms.CharField(label = ('Confirm New Password'), widget = forms.PasswordInput(attrs={'placeholder':'Re-enter New Password','autocomplete': 'off','data-toggle': 'password'}), required=True)
     class Meta:
         """This is Meta Class"""
         model = LibraryRegistration
-        fields = ['password1', 'password2', 'password3']
+        fields = ['password2', 'password3']
 
 class StudentEditForm(forms.ModelForm):
     """This is form class for Student entry by admin"""

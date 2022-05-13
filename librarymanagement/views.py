@@ -1,8 +1,8 @@
 import csv
 import io
 from datetime import datetime, timedelta
-from MySQLdb import IntegrityError
 from django.core.mail import EmailMessage
+from django.db import IntegrityError
 from django.forms import ValidationError
 from django.http import HttpResponse
 from django.core.exceptions import ObjectDoesNotExist
@@ -13,7 +13,6 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.template.loader import render_to_string
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import permission_required, login_required
-from requests import request
 from librarymanagement.models import LibraryRegistration, Student, BookData, IssueBook, Staff
 from librarymanagement.forms import IssueBookForm, PasswordForm, LoginForm, EntryForm, StaffPasswordForm, StudentEntryForm, PasswordResetForm, ExistingUserPassResetForm, StudentEditForm, BookDataForm
 from .tokens import account_activation_token
@@ -80,7 +79,7 @@ def uploadcsv(request):
 
 
 def activate(request, uidb64, token):
-    """This is a function for activating student's email"""
+    """This is a function for validating student for activating student's email"""
     try:
         uid = force_str(urlsafe_base64_decode(uidb64))
         user = Student.objects.get(pk=uid)
@@ -148,7 +147,7 @@ def passwordgeneration(request, uidb64):
 
 
 def staffactivate(request, uidb64, token):
-    """This is a function for activating staff's email"""
+    """This is a function for validating staff for activating staff's email"""
     try:
         uid = force_str(urlsafe_base64_decode(uidb64))
         user = Staff.objects.get(pk=uid)
@@ -258,14 +257,20 @@ def issuebook(request):
         issue_form = IssueBookForm(request.POST)
         obj = issue_form.save(commit=False)
         obj.username = request.user
-        if book_obj.quantity>0:
-            obj.username = request.user
-            obj.is_pending = True
-            obj.request_date = datetime.now()
-            obj.save()
-            return render(request, 'librarymanagement/response/book_request_sent.html')
+        print(obj.select_book,'++++')
+        print(obj.is_pending,'******')
+        print(obj.is_subscription_active,'-----')
+        if obj.is_pending is False:
+            if book_obj.quantity>0:
+                obj.username = request.user
+                obj.is_pending = True
+                obj.request_date = datetime.now()
+                obj.save()
+                return render(request, 'librarymanagement/response/book_request_sent.html')
+            else:
+                return render(request, 'librarymanagement/student/issue_book.html', {'error':'Book Out of Stock.'})
         else:
-            return render(request, 'librarymanagement/student/issue_book.html', {'error':'Book Out of Stock.'})
+            return render(request, 'librarymanagement/student/issue_book.html', {'error':'You already have an active subscription for the selected Book, please select another!'})
 
 
 @login_required
@@ -416,14 +421,13 @@ def approverequests(request, student_pk):
         student_obj.is_approved = True
         student_obj.is_subscription_active = True
         student_obj.review_date = datetime.now()
-        if student_obj.select_no_of_weeks == '1':
-            student_obj.expected_return_date = datetime.now() + timedelta(days=7)
-        if student_obj.select_no_of_weeks == '2':
-            student_obj.expected_return_date = datetime.now() + timedelta(days=14)
-        if student_obj.select_no_of_weeks == '3':
-            student_obj.expected_return_date = datetime.now() + timedelta(days=21)
-        if student_obj.select_no_of_weeks == '4':
-            student_obj.expected_return_date = datetime.now() + timedelta(days=28)
+        input_days = request.POST.get('specify_days')
+        if input_days == "":
+            student_obj.select_no_of_days = 7
+            student_obj.expected_return_date = datetime.now() + timedelta(days=student_obj.select_no_of_days)
+        else:
+            student_obj.select_no_of_days = int(input_days)
+            student_obj.expected_return_date = datetime.now() + timedelta(days=student_obj.select_no_of_days)
         book_obj = BookData.objects.get(bookname = student_obj.select_book)
         if book_obj.quantity>0:
             book_obj.quantity = book_obj.quantity - 1
@@ -497,6 +501,7 @@ def addbooks(request):
                                                     )
                     return redirect('booksliststaff')
 
+@login_required
 def deletebooks(request, book_pk):
     book_obj = get_object_or_404(BookData, pk = book_pk)
     if request.method=='POST':
@@ -610,7 +615,24 @@ def resetpassword(request):
             elif email in user_list:
                 user_obj = LibraryRegistration.objects.get(username = email)
                 if user_obj.is_active is True:
-                    return redirect(existinguserpassreset, user_pk = user_obj.pk)
+                    domain = get_current_site(request).domain
+                    uid = urlsafe_base64_encode(force_bytes(user_obj.pk))
+                    token = account_activation_token.make_token(user_obj)
+                    email_subject = 'University Library - Reset your Password for your Student Account'
+                    email_body = render_to_string('librarymanagement/student/email_reset_password.html', {
+                        'updated': user_obj,
+                        'domain': domain,
+                        'uid':urlsafe_base64_encode(force_bytes(user_obj.pk)),
+                        'token':account_activation_token.make_token(user_obj),
+                    })
+                    send_email = EmailMessage(
+                            email_subject,
+                            email_body,
+                            'noreply@librarian.com',
+                            (email,)
+                    )
+                    send_email.send(fail_silently=False)
+                    return render(request, 'librarymanagement/response/reset_link_sent.html')
             else:
                 context = {'password_reset_form':password_reset_form,'error':'Email does not exist!'}
                 return render(request, 'librarymanagement/reset_password.html', context)
@@ -642,7 +664,24 @@ def resetpassword(request):
             elif email in user_list:
                 user_obj = LibraryRegistration.objects.get(username = email)
                 if user_obj.is_active and user_obj.is_staff is True:
-                    return redirect(existinguserpassreset, user_pk = user_obj.pk)
+                    domain = get_current_site(request).domain
+                    uid = urlsafe_base64_encode(force_bytes(user_obj.pk))
+                    token = account_activation_token.make_token(user_obj)
+                    email_subject = 'University Library - Reset your Password for your Staff Account'
+                    email_body = render_to_string('librarymanagement/staff/staff_email_reset_password.html', {
+                        'updated': user_obj,
+                        'domain': domain,
+                        'uid':urlsafe_base64_encode(force_bytes(user_obj.pk)),
+                        'token':account_activation_token.make_token(user_obj),
+                    })
+                    send_email = EmailMessage(
+                            email_subject,
+                            email_body,
+                            'noreply@librarian.com',
+                            (email,)
+                    )
+                    send_email.send(fail_silently=False)
+                    return render(request, 'librarymanagement/response/reset_link_sent.html')
             else:
                 context = {'password_reset_form':password_reset_form,'error':'Email does not exist!'}
                 return render(request, 'librarymanagement/reset_password.html', context)
@@ -650,6 +689,33 @@ def resetpassword(request):
             context = {'password_reset_form':password_reset_form,'error':'Email does not exist!'}
             return render(request, 'librarymanagement/reset_password.html', context)
 
+def studentpassreset(request, uidb64, token):
+    """This is a function for validating student for resetting existing student password"""
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = LibraryRegistration.objects.get(pk=uid)
+    except(TypeError, ValueError, OverflowError, ObjectDoesNotExist):
+        user = None
+    if user is not None and account_activation_token.check_token(user, token):
+        if user.is_active is True:
+            return redirect(existinguserpassreset, user_pk = user.pk)
+    else:
+        return HttpResponse('Link is invalid or expired!\
+                             It seems your account is not active, please activate your account by contacting the staff')
+
+def staffpassreset(request, uidb64, token):
+    """This is a function for validating staff for resetting existing staff password"""
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = LibraryRegistration.objects.get(pk=uid)
+    except(TypeError, ValueError, OverflowError, ObjectDoesNotExist):
+        user = None
+    if user is not None and account_activation_token.check_token(user, token):
+        if user.is_active and user.is_staff is True:
+            return redirect(existinguserpassreset, user_pk = user.pk)
+    else:
+        return HttpResponse('Link is invalid or expired!\
+                             It seems your account is not active, please activate your account by contacting the staff')
 
 def existinguserpassreset(request, user_pk):
     """This is a function for changing existing user password"""
@@ -659,28 +725,50 @@ def existinguserpassreset(request, user_pk):
     else:
         exisiting_pass_reset_form = ExistingUserPassResetForm(request.POST)
         user_obj = LibraryRegistration.objects.get(pk = user_pk)
-        old_password = request.POST['password1']
         new_password = request.POST['password2']
         confirm_password = request.POST['password3']
         if exisiting_pass_reset_form.is_valid():
-            if user_obj.check_password(old_password):
-                if old_password == new_password:
-                    if new_password == confirm_password:
-                        user_obj.set_password(new_password)
-                        user_obj.save()
-                        return render(request,'librarymanagement/response/pass_update_success.html')
-                    else:
-                        context = {'exisiting_pass_reset_form':ExistingUserPassResetForm(),"error":"New and Confirm new password don't match!"}
-                        return render(request,'librarymanagement/existing_password_reset.html',context)
-                else:
-                    context = {'exisiting_pass_reset_form':ExistingUserPassResetForm(),"error":"Old password and New password cannot be same!"}
-                    return render(request,'librarymanagement/existing_password_reset.html',context)
+            if new_password == confirm_password:
+                user_obj.set_password(new_password)
+                user_obj.save()
+                return render(request,'librarymanagement/response/pass_update_success.html')
             else:
-                context = {'exisiting_pass_reset_form':ExistingUserPassResetForm(),"error":"Old password doesn't match with Database!"}
+                context = {'exisiting_pass_reset_form':ExistingUserPassResetForm(),"error":"New and Confirm new password don't match!"}
                 return render(request,'librarymanagement/existing_password_reset.html',context)
         else:
             context = {'exisiting_pass_reset_form':ExistingUserPassResetForm(),'error':'Please check the fields again!'}
             return render(request,'librarymanagement/existing_password_reset.html', context)
+
+# def existinguserpassreset(request, user_pk):
+#     """This is a function for changing existing user password"""
+#     if request.method == 'GET':
+#         context = {'exisiting_pass_reset_form':ExistingUserPassResetForm()}
+#         return render(request, 'librarymanagement/existing_password_reset.html', context)
+#     else:
+#         exisiting_pass_reset_form = ExistingUserPassResetForm(request.POST)
+#         user_obj = LibraryRegistration.objects.get(pk = user_pk)
+#         old_password = request.POST['password1']
+#         new_password = request.POST['password2']
+#         confirm_password = request.POST['password3']
+#         if exisiting_pass_reset_form.is_valid():
+#             if user_obj.check_password(old_password):
+#                 if old_password == new_password:
+#                     if new_password == confirm_password:
+#                         user_obj.set_password(new_password)
+#                         user_obj.save()
+#                         return render(request,'librarymanagement/response/pass_update_success.html')
+#                     else:
+#                         context = {'exisiting_pass_reset_form':ExistingUserPassResetForm(),"error":"New and Confirm new password don't match!"}
+#                         return render(request,'librarymanagement/existing_password_reset.html',context)
+#                 else:
+#                     context = {'exisiting_pass_reset_form':ExistingUserPassResetForm(),"error":"Old password and New password cannot be same!"}
+#                     return render(request,'librarymanagement/existing_password_reset.html',context)
+#             else:
+#                 context = {'exisiting_pass_reset_form':ExistingUserPassResetForm(),"error":"Old password doesn't match with Database!"}
+#                 return render(request,'librarymanagement/existing_password_reset.html',context)
+#         else:
+#             context = {'exisiting_pass_reset_form':ExistingUserPassResetForm(),'error':'Please check the fields again!'}
+#             return render(request,'librarymanagement/existing_password_reset.html', context)
 
 
 def logoutpage(request):

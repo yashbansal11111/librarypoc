@@ -14,22 +14,23 @@
             <li>
                 <b>Student Username: {{ field.username }} </b><br>
                 <b>Bookname: </b> {{ field.select_book }} <br>
-                <b>No. of Weeks: </b>{{ field.select_no_of_weeks }} <br>
+                <b>No. of Days: </b>{{ field.select_no_of_days }} <br>
                 <b>Requested Date:</b>{{ field.request_date }} <br>
                 <b>Request Status: </b>
                 {% if field.is_pending %}
                     <p style="color: orange ;font-weight: bold;margin: auto;">Pending</p>
-                {% endif %} <br>
+                {% endif %}
                 <form method="POST" action = "{% url 'approverequests' field.id %}">
                     {% csrf_token %}
                     <p style = 'color: red;'>{{ error }}</p>
                     <button id="search_submit" style = 'background-color:yellowgreen; height: 30px; width: 100px; font-size: 18px;position: relative;'type = 'submit' >Approve</button>
+                    <input  id="specify_days" type="number" name="specify_days"  placeholder="Select No. of Days... " style="height: 18px; width: 170px;font-size: 16px;position: relative;top: 45px;right: 104px;">
                 </form>
                 <form method="POST" action = "{% url 'rejectrequests' field.id %}">
                     {% csrf_token %}
                     <button id="search_submit" style = 'background-color:red; height: 30px; width: 100px; font-size: 18px;position: relative;left:125px;bottom: 30px;'type = 'submit' >Reject</button>
                 </form>
-            </li>
+            </li> <br>
             <hr>
             {% endfor %}
         </ol>

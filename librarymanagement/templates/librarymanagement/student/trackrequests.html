@@ -11,7 +11,7 @@
         {% for field in user_obj %}
         <li>
               <b>Bookname: </b> {{ field.select_book }} <br>
-              <b>No. of Weeks: </b>{{ field.select_no_of_weeks }} <br>
+              <b>No. of Days: </b>{{ field.select_no_of_days }} <br>
               <b>Requested Date: </b>{{ field.request_date }} <br>
               <b>Request Status: </b>
               {% if field.is_pending %}

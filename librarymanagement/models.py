@@ -132,18 +132,15 @@ class BookData(models.Model):
 
 class IssueBook(models.Model):
     """This is model class for Books Issued by Students"""
+    choices = (('1','One Week'),('2','Two Weeks'),('3', 'Three Weeks'),('4', 'Four Weeks'))
+                                                                     
     username = models.ForeignKey(LibraryRegistration, on_delete=models.CASCADE, default = None)
     select_book = models.ForeignKey(BookData, on_delete=models.CASCADE)
     request_date = models.DateField(null=True, default=None)
     review_date = models.DateField(null=True, default=None)
     expected_return_date = models.DateField(null=True, default=None)
     actual_return_date = models.DateField(null=True, default=None)
-    select_no_of_weeks = models.CharField(max_length = 10,choices = (('1','One Week'),
-                                                                     ('2','Two Weeks'),
-                                                                     ('3', 'Three Weeks'),
-                                                                     ('4', 'Four Weeks')
-                                                                     ),
-                                                                     null=True )
+    select_no_of_days = models.IntegerField(default=7, validators=[MaxValueValidator(28)])
     is_approved = models.BooleanField(default=False,
                                      help_text='Designates whether your book issue request\
                                                 is approved or not',

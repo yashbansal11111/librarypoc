@@ -29,7 +29,9 @@ urlpatterns = [
     path('staffregistration/<uidb64>', views.staffpasswordgeneration, name = 'staffpasswordgeneration'),
     path('loginpage/', views.loginpage, name = 'loginpage'),
     path('loginpage/resetpassword/', views.resetpassword, name = 'resetpassword'),
-    path('loginpage/resetpassword/<int:user_pk>/',views.existinguserpassreset, name = 'existinguserpassreset'),
+    path('resetpassword/<uidb64>/<token>', views.studentpassreset, name = 'studentpassreset' ),
+    path('staffresetpassword/<uidb64>/<token>', views.staffpassreset, name = 'staffpassreset' ),
+    path('resetpassword/<int:user_pk>/',views.existinguserpassreset, name = 'existinguserpassreset'),
 
     path('studentportal/home/', views.studentportal, name = 'studentportal'),
     path('studentportal/issue/', views.issuebook, name = 'issuebook'),
