@@ -2,7 +2,7 @@
 {% if user.is_authenticated %}
 <p style = 'color: blue;margin: 0px;'> Logged in user " {{ user.username }} "</p>
 {% endif %}
-<br>
+
 <div align = center class='container text-center'>
 <h1 style="color: darkgoldenrod;">Type the bookname you want to search</h1>
 <hr>
@@ -16,10 +16,9 @@
     <p style = 'color: red;'>{{ error }}</p>
 
   </form>
-
-  
     <br>
   <div align = 'center' style="color:gray;font-family: 'Courier New', Courier, monospace;border-style: solid;border-color:black;border-radius: 6cm;">
+  {% for field in bookname %}
   <a href="/librarymanagement/books/harry_potter.html/"
   style="background-color: gray;
     color:black;
@@ -30,7 +29,8 @@
     margin: 10px 30px;
     cursor: pointer;
     position:relative;
-    text-decoration:none;">{{ bookname }}</a>
+    text-decoration:none;">{{ field.bookname }}</a>
+  {% endfor %}
   </div>
 </div>
 <div align = center class='container text-center'>

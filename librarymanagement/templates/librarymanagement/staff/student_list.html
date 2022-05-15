@@ -46,14 +46,13 @@ style="background-color: cadetblue;
 
 <div align = 'center' style="color:gray;font-family: 'Courier New', Courier, monospace; font-size: 20px;border-style: solid;border-color: black;border-radius: 1cm;">        
 
-Username: {{ student_list.email }} <br>
-First Name: {{ student_list.first_name }} <br>
-Last Name: {{ student_list.last_name }} <br>
-DOB: {{ student_list.date_of_birth }} <br>
-Contact Number: {{ student_list.phone }} <br>
-Active Status: {{ student_list.is_active }} <br>
-
-{% for field in student_row %}
+{% for field in student_list %}
+Username: {{ field.email }} <br>
+First Name: {{ field.first_name }} <br>
+Last Name: {{ field.last_name }} <br>
+DOB: {{ field.date_of_birth }} <br>
+Contact Number: {{ field.phone }} <br>
+Active Status: {{ field.is_active }} <br>
 <a href = "{% url 'editstudent' field.id %}"
 style="background-color: gray;
     border: 2px solid black;
@@ -64,8 +63,10 @@ style="background-color: gray;
     font-size: 20px;
     margin: 10px 30px;
     cursor: pointer;
-    text-decoration:none;">Edit</a>
-</div> 
-{% endfor %}     
+    text-decoration:none;">Edit</a><br>
+<br>
+{% endfor %}
+
+</div>   
 </div>
 

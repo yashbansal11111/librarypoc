@@ -2,10 +2,21 @@
 {% if user.is_authenticated %}
 <p style = 'color: blue; margin: 0px;'> Logged in user " {{ user.username }} "</p>
 {% endif %}
-<br>
+
 <div align = left class='container text-center' style= "margin-left: 10px;">
     
     <h1 style="color: darkgoldenrod;">Book Requests</h1>
+    <div align = right class='container text-center' style= "margin-right: 10px;position: absolute;left: 1100px;top: 75px;">
+        <form method = 'GET' action = "{% url 'orderbypendingstudent' %}">
+            <button style="width: 190px;text-align: left;">Filter By: Pending Requests</button>
+        </form>
+        <form method = 'GET' action = "{% url 'orderbyapprovedstudent' %}">
+            <button style="width: 190px;text-align: left;">Filter By: Approved Requests</button>
+        </form>
+        <form method = 'GET' action = "{% url 'orderbyrejectedstudent' %}">
+            <button style="width: 190px;text-align: left;">Filter By: Rejected Requests</button>
+        </form>
+    </div>
     <hr style="height: 5px;background-color: gray;">
     <ol>
         {% for field in user_obj %}

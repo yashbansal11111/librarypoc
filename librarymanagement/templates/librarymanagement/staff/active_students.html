@@ -4,6 +4,11 @@
 <div align = center class='container text-center'>
     
         <h1 style="color: darkgoldenrod;">List of Active Students</h1>
+        <div align = right class='container text-center' style= "margin-right: 10px;position: absolute;left: 1150px;top: 85px;">
+            <form method = 'GET' action = "{% url 'orderbyactiveusername' %}">
+                <button style="width: 160px;text-align: left;">Sort By: Username|A-Z</button>
+            </form>
+        </div>
         <p><b style="color: red;">Note:</b> To make a Student <b>Inactive</b>, go to the <b>Students</b> tab and after searching for required student, hit <b>Edit</b> button.</p>
         <hr style="height: 5px;background-color: gray;">
     </div>

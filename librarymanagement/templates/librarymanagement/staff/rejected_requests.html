@@ -3,6 +3,11 @@
     <div align = left class='container text-center' style= "margin-left: 10px;">
     
         <h1 style="color: darkgoldenrod;">Rejected Requests</h1>
+        <div align = right class='container text-center' style= "margin-right: 10px;position: absolute;left: 1100px;top: 85px;">
+            <form method = 'GET' action = "{% url 'orderbyrejectdate' %}">
+                <button>Sort By: Request Rejection Date</button>
+            </form>
+        </div>
         <hr style="height: 5px;background-color: gray;">
         <ol>
             {% for field in user_obj %}

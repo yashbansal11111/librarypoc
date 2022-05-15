@@ -8,6 +8,11 @@
         <form method="GET" action = "{% url 'allrejectedrequests' %}">
           <button id="search_submit" style = 'background-color:darkgoldenrod; height: 30px; width: 200px; font-size: 18px;position: relative;left: 220px;bottom: 30px;'type = 'submit' >Rejected Requests</button>
         </form>
+        <div align = right class='container text-center' style= "margin-right: 10px;position: absolute;left: 1100px;top: 85px;">
+            <form method = 'GET' action = "{% url 'orderbyrequestdate' %}">
+                <button>Sort By: Requested Date|oldest first</button>
+            </form>
+        </div>
         <hr style="height: 5px;background-color: gray;">
         <ol>
             {% for field in user_obj %}

@@ -2,10 +2,14 @@
 {% if user.is_authenticated %}
 <p style = 'color: blue; margin: 0px;'> Logged in user " {{ user.username }} "</p>
 {% endif %}
-<br>
 <div align = left class='container text-center' style= "margin-left: 10px;">
     
     <h1 style="color: darkgoldenrod;">Subscribed Books</h1>
+    <div align = right class='container text-center' style= "margin-right: 10px;position: absolute;left: 1000px;top: 100px;">
+        <form method = 'GET' action = "{% url 'orderbyreturndatestudent' %}">
+            <button style="width: 270px;text-align: left;">Sort By: Expected Return Date|closest first</button>
+        </form>
+    </div>
     <hr style="height: 5px;background-color: gray;">
     <ol>
         {% for field in user_obj %}

@@ -18,9 +18,10 @@
           
     </div>
     <div align = 'center' style="color:gray;font-family: 'Courier New', Courier, monospace; font-size: 20px;border-style: solid;border-color: black;border-radius: 1cm;">        
-
-        Bookname: {{ book_stock.bookname }} <br>
-        Quantity Left: {{ book_stock.quantity }} <br>
+        {% for field in book_stock %}
+        Bookname: {{ field.bookname }} <br>
+        Quantity Left: {{ field.quantity }} <br>
+        {% endfor %}
     </div>
 </body>
 </html>

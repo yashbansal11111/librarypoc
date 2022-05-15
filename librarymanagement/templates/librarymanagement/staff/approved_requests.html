@@ -3,6 +3,18 @@
     <div align = left class='container text-center' style= "margin-left: 10px;">
     
         <h1 style="color: darkgoldenrod;">Approved Requests</h1>
+        <div align = right class='container text-center' style= "margin-right: 10px;position: absolute;left: 1100px;top: 85px;">
+        <form method = 'GET' action = "{% url 'orderbyreturndate' %}">
+            <button style="width: 230px;text-align: left;">Sort By: Expected Return Date</button>
+        </form>
+        <form method = 'GET' action = "{% url 'orderbyissuedate' %}">
+            <button style="width: 230px;text-align: left;" >Sort By: Issue Date</button>
+        </form>
+        <form method = 'GET' action = "{% url 'orderbynoofdays' %}">
+            <button style="width: 230px;text-align: left;">Sort By: No. of Days|Lowest first</button>
+        </form>
+        </div>
+        <br>
         <hr style="height: 5px;background-color: gray;">
         <ol>
             {% for field in user_obj %}
