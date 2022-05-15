@@ -308,19 +308,19 @@ def trackrequests(request):
 @login_required
 def browsebook(request):
     """With this function students can browse and search for books that are available in the library"""
-    if request.method == 'GET':
+    if request.method == 'GET': 
         book_list = BookData.objects.all()
         return render(request, 'librarymanagement/student/browse_book.html', {'book_list':book_list})
     else:
         search_query = request.POST.get('search_box')
         book_list = list(BookData.objects.values_list('bookname',flat=True))
-        if search_query not in book_list:
-            context = {'error':'Sorry, Book is yet to be available in our Library!'}
-            return render(request, 'librarymanagement/student/browse_book.html', context)
-        else:
-            book_list = BookData.objects.all()
-            bookname = BookData.objects.get(bookname = search_query)
-            return render(request,'librarymanagement/student/browse_book.html',{'bookname':bookname, 'book_list':book_list})
+        # if search_query not in book_list:
+        #     context = {'error':'Sorry, Book is yet to be available in our Library!'}
+        #     return render(request, 'librarymanagement/student/browse_book.html', context)
+        # else:
+        book_list = BookData.objects.all()
+        bookname = BookData.objects.filter(bookname__icontains = search_query)
+        return render(request,'librarymanagement/student/browse_book.html',{'bookname':bookname, 'book_list':book_list})
 
 
 @login_required
@@ -346,13 +346,13 @@ def studentlist(request):
     else:
         search_query = request.POST.get('search_box')
         student_list = list(Student.objects.values_list('email',flat=True))
-        if search_query not in student_list:
-            context = {'error':'User does not exist!'}
-            return render(request, 'librarymanagement/staff/student_list.html', context)
-        else:
-            student = Student.objects.get(email = search_query)
-            student_row = Student.objects.filter(email = search_query)
-            return render(request,'librarymanagement/staff/student_list.html',{'student_row':student_row,'student_list':student})
+        # if search_query not in student_list:
+        #     context = {'error':'User does not exist!'}
+        #     return render(request, 'librarymanagement/staff/student_list.html', context)
+        # else:
+        student = Student.objects.filter(email__icontains = search_query)
+        # student_row = Student.objects.filter(email__icontains = search_query)
+        return render(request,'librarymanagement/staff/student_list.html',{'student_list':student})
 
 
 @login_required
@@ -372,20 +372,31 @@ def inactivestudents(request):
 def editstudent(request, student_pk):
     """With this function staff can edit a student's details and that will be saved to student's database"""
     student_obj = get_object_or_404(Student, pk = student_pk)
+    student_list = list(Student.objects.values_list('email',flat=True))
     if request.method == "GET":
         student_edit_form = StudentEditForm(instance=student_obj)
         return render(request, 'librarymanagement/staff/edit_student.html', {'student_obj':student_obj,'student_edit_form':student_edit_form})
     else:
         student_edit_form = StudentEditForm(request.POST, instance=student_obj)
-        user_obj = LibraryRegistration.objects.get(username = student_obj.email)
         if student_edit_form.is_valid():
-            user_obj.first_name = request.POST['first_name']
-            user_obj.last_name = request.POST['last_name']
-            user_obj.phone = request.POST['phone']
-            student_edit_form.save()
-            user_obj.is_active = student_obj.is_active
-            user_obj.save()
-            return render(request,'librarymanagement/response/changes_saved.html')
+            if student_obj.email in student_list:
+                student_obj.first_name = request.POST['first_name']
+                student_obj.last_name = request.POST['last_name']
+                student_obj.phone = request.POST['phone']
+                student_obj.date_of_birth = request.POST['date_of_birth']
+                student_edit_form.save()
+                student_obj.is_active = student_obj.is_active
+                student_obj.save()
+                return render(request,'librarymanagement/response/changes_saved.html')
+            else:
+                user_obj = LibraryRegistration.objects.get(username = student_obj.email)
+                user_obj.first_name = request.POST['first_name']
+                user_obj.last_name = request.POST['last_name']
+                user_obj.phone = request.POST['phone']
+                student_edit_form.save()
+                user_obj.is_active = student_obj.is_active
+                user_obj.save()
+                return render(request,'librarymanagement/response/changes_saved.html')
 
 
 @login_required
@@ -403,7 +414,79 @@ def allapprovedrequests(request):
         user_obj = IssueBook.objects.filter(is_approved = True)
         return render(request, 'librarymanagement/staff/approved_requests.html',{'user_obj':user_obj})
 
+@login_required
+def orderbyreturndate(request):
+    if request.method == "GET":
+        user_obj = IssueBook.objects.filter(is_approved = True).order_by('expected_return_date')
+        return render(request, 'librarymanagement/staff/approved_requests.html',{'user_obj':user_obj})
 
+@login_required
+def orderbyissuedate(request):
+    if request.method == "GET":
+        user_obj = IssueBook.objects.filter(is_approved = True).order_by('review_date')
+        return render(request, 'librarymanagement/staff/approved_requests.html',{'user_obj':user_obj})
+
+@login_required
+def orderbyrequestdate(request):
+    if request.method == "GET":
+        user_obj = IssueBook.objects.filter(is_pending = True).order_by('request_date')
+        return render(request, 'librarymanagement/staff/checkrequests.html',{'user_obj':user_obj})
+
+@login_required
+def orderbynoofdays(request):
+    if request.method == "GET":
+        user_obj = IssueBook.objects.filter(is_approved = True).order_by('select_no_of_days')
+        return render(request, 'librarymanagement/staff/approved_requests.html',{'user_obj':user_obj})
+
+@login_required
+def orderbyrejectdate(request):
+    if request.method == "GET":
+        user_obj = IssueBook.objects.filter(is_rejected = True).order_by('review_date')
+        return render(request, 'librarymanagement/staff/rejected_requests.html',{'user_obj':user_obj})
+
+@login_required
+def orderbyactiveusername(request):
+    if request.method == "GET":
+        active_students = Student.objects.filter(is_active = True).order_by('email')
+        return render(request, 'librarymanagement/staff/active_students.html',{'active_students':active_students})
+
+@login_required
+def orderbyinactiveusername(request):
+    if request.method == "GET":
+        inactive_students = Student.objects.filter(is_active = False).order_by('email')
+        return render(request, 'librarymanagement/staff/inactive_students.html',{'inactive_students':inactive_students})
+
+@login_required
+def orderbyreturndatestudent(request):
+    if request.method == "GET":
+        user_obj = IssueBook.objects.filter(username = request.user).order_by('expected_return_date')
+        return render(request, 'librarymanagement/student/subscriptions.html',{'user_obj':user_obj})
+
+@login_required
+def orderbypendingstudent(request):
+    if request.method == "GET":
+        user_obj = IssueBook.objects.filter(username = request.user).extra(where=["is_pending=True"])
+        return render(request, 'librarymanagement/student/trackrequests.html',{'user_obj':user_obj})
+
+@login_required
+def orderbyapprovedstudent(request):
+    if request.method == "GET":
+        user_obj = IssueBook.objects.filter(username = request.user).extra(where=["is_approved=True"])
+        return render(request, 'librarymanagement/student/trackrequests.html',{'user_obj':user_obj})
+
+@login_required
+def orderbyrejectedstudent(request):
+    if request.method == "GET":
+        user_obj = IssueBook.objects.filter(username = request.user).extra(where=["is_rejected=True"])
+        return render(request, 'librarymanagement/student/trackrequests.html',{'user_obj':user_obj})
+
+@login_required
+def orderbyactualreturndate(request):
+    if request.method == "GET":
+        user_obj = IssueBook.objects.filter(username = request.user).order_by('actual_return_date')
+        return render(request, 'librarymanagement/student/subhistory.html',{'user_obj':user_obj})
+
+    
 @login_required
 def allrejectedrequests(request):
     """This is a function for showing all the rejected requests by staff"""
@@ -458,12 +541,12 @@ def checkbookstock(request):
     else:
         search_query = request.POST.get('search_box')
         book_list = list(BookData.objects.values_list('bookname',flat=True))
-        if search_query not in book_list:
-            context = {'error':'Sorry, Book not found!'}
-            return render(request, 'librarymanagement/staff/checkbookstock.html', context)
-        else:
-            book_stock = BookData.objects.get(bookname = search_query)
-            return render(request,'librarymanagement/staff/checkbookstock.html',{'book_stock':book_stock})
+        # if search_query not in book_list:
+        #     context = {'error':'Sorry, Book not found!'}
+        #     return render(request, 'librarymanagement/staff/checkbookstock.html', context)
+        # else:
+        book_stock = BookData.objects.filter(bookname__icontains = search_query)
+        return render(request,'librarymanagement/staff/checkbookstock.html',{'book_stock':book_stock})
 
 
 @login_required
