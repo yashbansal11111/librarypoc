@@ -6,10 +6,10 @@
 <div align = center class='container text-center'>
 <h1 style="color: darkgoldenrod;">Type the bookname you want to search</h1>
 <hr>
-<p> <b style="color: red;">Note:</b> Please provide only complete bookname for a successfull search. </p>
+
 <form method = "POST" action="{% url 'browsebook' %}">
     {% csrf_token %}
-    <input  id="search_box" type="text" name="search_box"  placeholder="Enter complete Bookname ... " style="height: 30px; width: 300px;font-size: 16px;">
+    <input  id="search_box" type="text" name="search_box"  placeholder="Enter Bookname or its keyword ... " style="height: 30px; width: 300px;font-size: 16px;">
     <br>
     <br>
     <button id="search_submit" style = 'background-color: yellowgreen; height: 30px; width: 100px; font-size: 18px;'type = 'submit' >Search</button>
@@ -19,7 +19,7 @@
     <br>
   <div align = 'center' style="color:gray;font-family: 'Courier New', Courier, monospace;border-style: solid;border-color:black;border-radius: 6cm;">
   {% for field in bookname %}
-  <a href="/librarymanagement/books/harry_potter.html/"
+  <a href="{% url 'harrypotter' %}"
   style="background-color: gray;
     color:black;
     padding: 5px 10px;
@@ -30,6 +30,7 @@
     cursor: pointer;
     position:relative;
     text-decoration:none;">{{ field.bookname }}</a>
+    
   {% endfor %}
   </div>
 </div>

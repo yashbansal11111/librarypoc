@@ -322,6 +322,8 @@ def browsebook(request):
         bookname = BookData.objects.filter(bookname__icontains = search_query)
         return render(request,'librarymanagement/student/browse_book.html',{'bookname':bookname, 'book_list':book_list})
 
+def harrypotter(request):
+    return render(request,'librarymanagement/books/harry_potter.html')
 
 @login_required
 def subhistory(request):
@@ -373,29 +375,38 @@ def editstudent(request, student_pk):
     """With this function staff can edit a student's details and that will be saved to student's database"""
     student_obj = get_object_or_404(Student, pk = student_pk)
     student_list = list(Student.objects.values_list('email',flat=True))
+    user_list = list(LibraryRegistration.objects.values_list('username', flat=True))
     if request.method == "GET":
         student_edit_form = StudentEditForm(instance=student_obj)
         return render(request, 'librarymanagement/staff/edit_student.html', {'student_obj':student_obj,'student_edit_form':student_edit_form})
     else:
         student_edit_form = StudentEditForm(request.POST, instance=student_obj)
         if student_edit_form.is_valid():
-            if student_obj.email in student_list:
+            if student_obj.email in user_list:
+                user_obj = LibraryRegistration.objects.get(username = student_obj.email)
+                user_obj.first_name = request.POST['first_name']
+                user_obj.last_name = request.POST['last_name']
+                user_obj.phone = request.POST['phone']
+                user_obj.is_active = student_obj.is_active
                 student_obj.first_name = request.POST['first_name']
                 student_obj.last_name = request.POST['last_name']
                 student_obj.phone = request.POST['phone']
                 student_obj.date_of_birth = request.POST['date_of_birth']
                 student_edit_form.save()
-                student_obj.is_active = student_obj.is_active
                 student_obj.save()
-                return render(request,'librarymanagement/response/changes_saved.html')
-            else:
-                user_obj = LibraryRegistration.objects.get(username = student_obj.email)
-                user_obj.first_name = request.POST['first_name']
-                user_obj.last_name = request.POST['last_name']
-                user_obj.phone = request.POST['phone']
-                student_edit_form.save()
-                user_obj.is_active = student_obj.is_active
                 user_obj.save()
+                return render(request,'librarymanagement/response/changes_saved.html')
+            elif student_obj.email not in user_list and student_obj.email in student_list:
+                student_obj.first_name = request.POST['first_name']
+                student_obj.last_name = request.POST['last_name']
+                student_obj.phone = request.POST['phone']
+                student_obj.date_of_birth = request.POST['date_of_birth']
+                # if request.POST['is_active'] == "on":
+                #     return render(request, 'librarymanagement/staff/edit_student.html', {'student_obj':student_obj,'student_edit_form':student_edit_form,'error':'Cannot activate this student as their email is not yet validated!'})
+                # elif not request.POST['is_active'] == "off":
+                student_obj.is_active = False
+                student_edit_form.save()
+                student_obj.save()
                 return render(request,'librarymanagement/response/changes_saved.html')
 
 
@@ -416,77 +427,88 @@ def allapprovedrequests(request):
 
 @login_required
 def orderbyreturndate(request):
+    """This function sorts all the approved requests by return date"""
     if request.method == "GET":
         user_obj = IssueBook.objects.filter(is_approved = True).order_by('expected_return_date')
         return render(request, 'librarymanagement/staff/approved_requests.html',{'user_obj':user_obj})
 
 @login_required
 def orderbyissuedate(request):
+    """This function sorts all the approved requests by issue date"""
     if request.method == "GET":
         user_obj = IssueBook.objects.filter(is_approved = True).order_by('review_date')
         return render(request, 'librarymanagement/staff/approved_requests.html',{'user_obj':user_obj})
 
 @login_required
 def orderbyrequestdate(request):
+    """This function sorts all the requests in check requests tab by request date"""
     if request.method == "GET":
         user_obj = IssueBook.objects.filter(is_pending = True).order_by('request_date')
         return render(request, 'librarymanagement/staff/checkrequests.html',{'user_obj':user_obj})
 
 @login_required
 def orderbynoofdays(request):
+    """This function sorts all the approved requests by No. of days issued"""
     if request.method == "GET":
         user_obj = IssueBook.objects.filter(is_approved = True).order_by('select_no_of_days')
         return render(request, 'librarymanagement/staff/approved_requests.html',{'user_obj':user_obj})
 
 @login_required
 def orderbyrejectdate(request):
+    """This function sorts all the rejected requests by rejection date"""
     if request.method == "GET":
         user_obj = IssueBook.objects.filter(is_rejected = True).order_by('review_date')
         return render(request, 'librarymanagement/staff/rejected_requests.html',{'user_obj':user_obj})
 
 @login_required
 def orderbyactiveusername(request):
+    """This function sorts all the active students by their username"""
     if request.method == "GET":
         active_students = Student.objects.filter(is_active = True).order_by('email')
         return render(request, 'librarymanagement/staff/active_students.html',{'active_students':active_students})
 
 @login_required
 def orderbyinactiveusername(request):
+    """This function sorts all the inactive students by their username """
     if request.method == "GET":
         inactive_students = Student.objects.filter(is_active = False).order_by('email')
         return render(request, 'librarymanagement/staff/inactive_students.html',{'inactive_students':inactive_students})
 
 @login_required
 def orderbyreturndatestudent(request):
+    """This function sorts all the active subscriptions by expected return date"""
     if request.method == "GET":
         user_obj = IssueBook.objects.filter(username = request.user).order_by('expected_return_date')
         return render(request, 'librarymanagement/student/subscriptions.html',{'user_obj':user_obj})
 
 @login_required
 def orderbypendingstudent(request):
+    """This function filters all the pending requests in track requests tab"""
     if request.method == "GET":
         user_obj = IssueBook.objects.filter(username = request.user).extra(where=["is_pending=True"])
         return render(request, 'librarymanagement/student/trackrequests.html',{'user_obj':user_obj})
 
 @login_required
 def orderbyapprovedstudent(request):
+    """This function filters all the approved requests in track requests tab"""
     if request.method == "GET":
         user_obj = IssueBook.objects.filter(username = request.user).extra(where=["is_approved=True"])
         return render(request, 'librarymanagement/student/trackrequests.html',{'user_obj':user_obj})
 
 @login_required
 def orderbyrejectedstudent(request):
+    """This function filters all the rejected requests in track requests tab"""
     if request.method == "GET":
         user_obj = IssueBook.objects.filter(username = request.user).extra(where=["is_rejected=True"])
         return render(request, 'librarymanagement/student/trackrequests.html',{'user_obj':user_obj})
 
 @login_required
 def orderbyactualreturndate(request):
+    """This function sorts all the subscription history by actual return date"""
     if request.method == "GET":
         user_obj = IssueBook.objects.filter(username = request.user).order_by('actual_return_date')
         return render(request, 'librarymanagement/student/subhistory.html',{'user_obj':user_obj})
 
-    
 @login_required
 def allrejectedrequests(request):
     """This is a function for showing all the rejected requests by staff"""
@@ -810,49 +832,30 @@ def existinguserpassreset(request, user_pk):
         user_obj = LibraryRegistration.objects.get(pk = user_pk)
         new_password = request.POST['password2']
         confirm_password = request.POST['password3']
+        special_sym =['$', '@', '#', '%', '!', '*']
         if exisiting_pass_reset_form.is_valid():
-            if new_password == confirm_password:
-                user_obj.set_password(new_password)
-                user_obj.save()
-                return render(request,'librarymanagement/response/pass_update_success.html')
+            if not user_obj.check_password(new_password):
+                print(user_obj.password,'*+*+**+***+**+*')
+                if len(new_password)>=8 and any((char.isupper(), char.islower(), char.isdigit()) for char in new_password) and any(char in special_sym for char in new_password) :
+                    if new_password == confirm_password:
+                        user_obj.set_password(new_password)
+                        user_obj.save()
+                        return render(request,'librarymanagement/response/pass_update_success.html')
+                    else:
+                        context = {'exisiting_pass_reset_form':ExistingUserPassResetForm(),"error":"New and Confirm new password don't match!"}
+                        return render(request,'librarymanagement/existing_password_reset.html',context)
+                else:
+                    context = {'exisiting_pass_reset_form':ExistingUserPassResetForm(),'error':"Password should be of atleast 8 characters\
+                                                                                                and contain atleast 1 uppercase, 1 lowercase,\
+                                                                                                1 numeric and 1 special character."
+                                                                                                }
+                    return render(request,'librarymanagement/existing_password_reset.html', context)
             else:
-                context = {'exisiting_pass_reset_form':ExistingUserPassResetForm(),"error":"New and Confirm new password don't match!"}
+                context = {'exisiting_pass_reset_form':ExistingUserPassResetForm(),"error":"Old password and New password cannot be same!"}
                 return render(request,'librarymanagement/existing_password_reset.html',context)
         else:
             context = {'exisiting_pass_reset_form':ExistingUserPassResetForm(),'error':'Please check the fields again!'}
             return render(request,'librarymanagement/existing_password_reset.html', context)
-
-# def existinguserpassreset(request, user_pk):
-#     """This is a function for changing existing user password"""
-#     if request.method == 'GET':
-#         context = {'exisiting_pass_reset_form':ExistingUserPassResetForm()}
-#         return render(request, 'librarymanagement/existing_password_reset.html', context)
-#     else:
-#         exisiting_pass_reset_form = ExistingUserPassResetForm(request.POST)
-#         user_obj = LibraryRegistration.objects.get(pk = user_pk)
-#         old_password = request.POST['password1']
-#         new_password = request.POST['password2']
-#         confirm_password = request.POST['password3']
-#         if exisiting_pass_reset_form.is_valid():
-#             if user_obj.check_password(old_password):
-#                 if old_password == new_password:
-#                     if new_password == confirm_password:
-#                         user_obj.set_password(new_password)
-#                         user_obj.save()
-#                         return render(request,'librarymanagement/response/pass_update_success.html')
-#                     else:
-#                         context = {'exisiting_pass_reset_form':ExistingUserPassResetForm(),"error":"New and Confirm new password don't match!"}
-#                         return render(request,'librarymanagement/existing_password_reset.html',context)
-#                 else:
-#                     context = {'exisiting_pass_reset_form':ExistingUserPassResetForm(),"error":"Old password and New password cannot be same!"}
-#                     return render(request,'librarymanagement/existing_password_reset.html',context)
-#             else:
-#                 context = {'exisiting_pass_reset_form':ExistingUserPassResetForm(),"error":"Old password doesn't match with Database!"}
-#                 return render(request,'librarymanagement/existing_password_reset.html',context)
-#         else:
-#             context = {'exisiting_pass_reset_form':ExistingUserPassResetForm(),'error':'Please check the fields again!'}
-#             return render(request,'librarymanagement/existing_password_reset.html', context)
-
 
 def logoutpage(request):
     """This is a logout function"""

@@ -9,8 +9,8 @@
     {% csrf_token %}
     {{ loginform.as_p }}
     <br>
-    
-    <button style = 'background-color: yellowgreen; height: 50px; width: 100px; font-size: 18px;'type = 'submit', onclick="myFunction()">Login</button>
+    <p style="color: red;">{{ error }}</p>
+    <button style = 'background-color: yellowgreen; height: 50px; width: 100px; font-size: 18px;'type = 'submit'>Login</button>
     <a href="{% url 'resetpassword' %}" 
     style="background-color: red;
     border: 2px solid black;
@@ -22,11 +22,7 @@
     margin: 10px 30px;
     cursor: pointer;
     text-decoration:none;position: relative;left: 60px;bottom:0px">Reset Password</a>
-    <script>
-        function myFunction() {
-          alert(" {{ error }}");
-        }
-    </script>
+    
 </form>
 </div>
 {% endblock %}

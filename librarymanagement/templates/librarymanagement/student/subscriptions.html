@@ -23,7 +23,6 @@
             <b>Expected Return Date: </b>{{ field.expected_return_date }}
             <form method="POST" action = "{% url 'bookreturn' field.id %}">
                 {% csrf_token %}
-                <p style = 'color: red;'>{{ error }}</p>
                 <button id="search_submit" style = 'background-color:aquamarine; height: 30px; width: 200px; font-size: 18px;position: relative;'type = 'submit' >Return the Book</button>
             </form>
             {% endif %}

@@ -45,8 +45,8 @@ urlpatterns = [
     path('studentportal/subscriptions/orderbyreturndate/', views.orderbyreturndatestudent, name = 'orderbyreturndatestudent'),
     path('studentportal/subhistory/', views.subhistory, name = 'subhistory'),
     path('studentportal/subhistory/orderbyactualreturndate/', views.orderbyactualreturndate, name = 'orderbyactualreturndate'),
+    path('studentportal/browsebook/harry_potter', views.harrypotter, name = 'harrypotter'),
     
-
     path('staffportal/home/', views.staffportal, name = 'staffportal'),
     path('staffportal/studentlist/', views.studentlist, name = 'studentlist'),
     path('staffportal/studentlist/editstudent/<int:student_pk>/', views.editstudent, name = 'editstudent'),

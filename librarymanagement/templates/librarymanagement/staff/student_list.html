@@ -4,7 +4,6 @@
     
     <h1 style="color: darkgoldenrod;">Search Student</h1>
     <p>Here you can view the student details using the search bar given below.</p>
-    <p><b style="color: red;">Note</b> - Please only provide complete username of the student you are willing to search.</p>
     <p>To edit student details, please use <b>Edit</b> button given below student details.</p>
     <hr>
     <h2 style="color:rgb(0, 153, 255);position: relative;;right: 98px; font-size: 19px;">Search here-</h2>
@@ -12,7 +11,7 @@
 
 <form method = "POST" action="{% url 'studentlist' %}">
   {% csrf_token %}
-  <input  id="search_box" type="text" name="search_box"  placeholder="Enter Student's Username ... " style="height: 30px; width: 300px;font-size: 16px;">
+  <input  id="search_box" type="text" name="search_box"  placeholder="Enter Student's Username or a keyword... " style="height: 30px; width: 300px;font-size: 16px;">
   <br>
   <br>
   <button id="search_submit" style = 'background-color: yellowgreen; height: 30px; width: 100px; font-size: 18px;'type = 'submit' >Search</button>

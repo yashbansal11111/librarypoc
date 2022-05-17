@@ -136,15 +136,6 @@ class PasswordResetForm(forms.ModelForm):
         model = LibraryRegistration
         fields = ['username']
 
-# class ExistingUserPassResetForm(forms.ModelForm):
-#     """This is a form for resetting password for existing users."""
-#     password1 = forms.CharField(label = ('Enter Current Password'), widget = forms.PasswordInput(attrs={'placeholder':'Enter Current Password'}), required=True)
-#     password2 = forms.CharField(label = ('Enter New Password'), widget = forms.PasswordInput(attrs={'placeholder':'Enter New Password'}), required=True)
-#     password3 = forms.CharField(label = ('Confirm New Password'), widget = forms.PasswordInput(attrs={'placeholder':'Re-enter New Password','autocomplete': 'off','data-toggle': 'password'}), required=True)
-#     class Meta:
-#         """This is Meta Class"""
-#         model = LibraryRegistration
-#         fields = ['password1', 'password2', 'password3']
 
 class ExistingUserPassResetForm(forms.ModelForm):
     """This is a form for resetting password for existing users."""

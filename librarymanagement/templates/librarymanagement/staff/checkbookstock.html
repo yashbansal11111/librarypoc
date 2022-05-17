@@ -4,11 +4,10 @@
     
         <h1 style="color: darkgoldenrod;">Search Bookname</h1>
         <p>Search for the book you want to check stock of by using below search bar.</p>
-        <p><b style="color: red;">Note</b> - Please only provide complete bookname of the book you are willing to search.</p>
         <hr>
         <form method = "POST" action="{% url 'checkbookstock' %}">
             {% csrf_token %}
-            <input  id="search_box" type="text" name="search_box"  placeholder="Enter complete bookname ... " style="height: 30px; width: 300px;font-size: 16px;">
+            <input  id="search_box" type="text" name="search_box"  placeholder="Enter bookname or its keyword... " style="height: 30px; width: 300px;font-size: 16px;">
             <br>
             <br>
             <button id="search_submit" style = 'background-color: yellowgreen; height: 30px; width: 100px; font-size: 18px;'type = 'submit' >Search</button>
@@ -21,6 +20,7 @@
         {% for field in book_stock %}
         Bookname: {{ field.bookname }} <br>
         Quantity Left: {{ field.quantity }} <br>
+        <br>
         {% endfor %}
     </div>
 </body>
