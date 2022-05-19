@@ -68,6 +68,7 @@ urlpatterns = [
     path('staffportal/checkbookstock/bookslist/', views.booksliststaff, name = 'booksliststaff'),
     path('staffportal/checkbookstock/bookslist/addbooks/', views.addbooks, name = 'addbooks'),
     path('staffportal/checkbookstock/bookslist/deletebooks/<int:book_pk>/', views.deletebooks, name = 'deletebooks'),
+    path('staffportal/checkrequests/allapprovedrequests/filterbydate/', views.filterbydate, name = 'filterbydate'),
     
     path('logout/',views.logoutpage,name='logoutpage'),
     

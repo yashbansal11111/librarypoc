@@ -426,6 +426,16 @@ def allapprovedrequests(request):
         return render(request, 'librarymanagement/staff/approved_requests.html',{'user_obj':user_obj})
 
 @login_required
+def filterbydate(request):
+    if request.method == "GET":
+        start_date_input = (request.GET.get('start date'))
+        print(start_date_input,'+*+*+*+*+*+**+')
+        end_date_input = (request.GET.get('end date'))
+        print(end_date_input,'++++++++++')
+        user_obj = IssueBook.objects.filter(is_approved = True, expected_return_date__range = [(start_date_input),(end_date_input)])
+        return render(request, 'librarymanagement/staff/approved_requests.html',{'user_obj':user_obj})
+
+@login_required
 def orderbyreturndate(request):
     """This function sorts all the approved requests by return date"""
     if request.method == "GET":

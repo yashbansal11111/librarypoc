@@ -1,1 +1,4 @@
-harry
+{% include "librarymanagement/student/base.html" %}
+{% if user.is_authenticated %}
+<p style = 'color: blue;margin: 0px;'> Logged in user " {{ user.username }} "</p>
+{% endif %}

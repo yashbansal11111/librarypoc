@@ -1,4 +1,23 @@
 {% include "librarymanagement/staff/base.html" %}
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Add icon library -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <style>
+    .btn {
+      background-color: DodgerBlue;
+      border: none;
+      color: white;
+      padding: 12px 16px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    
+    .btn:hover {
+      background-color: rgb(7, 24, 73);
+    }
+    </style>
+    </head>
     <div align = left class='container text-center'style= "margin-left: 10px;">
     
         <h1 style="color: darkgoldenrod;">Complete list of books available</h1>
@@ -13,7 +32,7 @@
             <b>Quantity Left: </b>{{ field.quantity }} <br>
             <form method="POST" action = "{% url 'deletebooks' field.id %}">
                 {% csrf_token %}
-                <button id="search_submit" style = 'background-color:red; height: 30px; width: 80px; font-size: 18px;position:relative;left: 1100px;bottom: 30px;'type = 'submit' >Delete</button>
+                <button class = "btn" id="search_submit" style = 'position:relative;left: 1100px;bottom: 30px;' type = 'submit' ><i class="fa fa-trash"></i></button>
             </form>
         </li>
         <br>
