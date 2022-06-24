@@ -640,7 +640,7 @@ def staffentry(request):
                                             phone = request.POST['phone'],
                                             is_staff = True
                                             )
-                return render(request, 'librarymanagement/response/database_update.html')
+                return render(request, 'librarymanagement/main.html')
             except IntegrityError:
                 context =  {'entry_form':EntryForm(), 'error':"This username is already taken,\
                                                                please use a different username"}
@@ -673,7 +673,7 @@ def studententry(request):
                                               phone = request.POST['phone'],
                                               date_of_birth = request.POST['date_of_birth']
                                               )
-                return render(request, 'librarymanagement/response/database_update.html')
+                return render(request, 'librarymanagement/main.html')
             except IntegrityError:
                 context =  {'entry_form':StudentEntryForm(), 'error':"This username is already taken,\
                                                               please use a different username"}

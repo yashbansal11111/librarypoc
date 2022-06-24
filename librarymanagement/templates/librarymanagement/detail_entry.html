@@ -10,8 +10,13 @@
     {% csrf_token %}
     {{ entry_form.as_p }}
     <p style="color: red;">{{ error }}</p>
-    <button style = 'background-color: yellowgreen; height: 50px; width: 100px; font-size: 18px;'type = 'submit'>Submit</button>
-    
+    <button style = 'background-color: yellowgreen; height: 50px; width: 100px; font-size: 18px;'type = 'submit' onclick=myFunction() >Submit</button>
+    <script>
+        function myFunction(){
+            alert('Details saved to Database Successfully!')
+        }
+
+    </script>
 </form>
 </div>
 

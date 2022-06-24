@@ -38,8 +38,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'librarymanagement',
-    'bootstrap4',
-    'bootstrap_datepicker_plus',
     'crispy_forms',
 ]
 
@@ -134,6 +132,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = '/static/'
+
+
 # EMAIL_HOST = '0.0.0.0'
 # EMAIL_PORT = 1025
 # EMAIL_HOST_USER = ""
@@ -146,8 +146,6 @@ EMAIL_HOST_USER = 'bansal.yash111@gmail.com'
 EMAIL_USE_TLS = True
 EMAIL_PORT = 587
 EMAIL_HOST_PASSWORD = 'wlpvdpyqooozpuhq'
-
-
 DEFAULT_FROM_EMAIL = 'noreply<no_reply@domain.com>'
 
 AUTH_USER_MODEL = 'librarymanagement.LibraryRegistration'

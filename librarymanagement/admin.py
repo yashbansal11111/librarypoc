@@ -27,6 +27,8 @@ class BookAdmin(admin.ModelAdmin):
     search_fields = ('bookname',)
 
 class IssueBookAdmin(admin.ModelAdmin):
+    """This is a class for defining what to display from IssueBook model/
+       on the admin page of this model"""
     list_display = ('username',
                     'select_book',
                     'is_pending',
